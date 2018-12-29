@@ -102,13 +102,15 @@ mod tests_any {
 
 impl Parser<char> for char {
     fn parse(&self, s: String) -> Response<char> {
-        match Any.parse(s) {
-            Success(v, ref s, b) if { v == *self } => Success(v, s.to_string(), b),
-            _ => Reject(false)
+        if let Success(v, s, b) = Any.parse(s) {
+            if v == *self {
+                return Success(v, s, b);
+            }
         }
+
+        Reject(false)
     }
 }
-
 
 #[cfg(test)]
 mod tests_character {
@@ -155,7 +157,7 @@ mod tests_character {
 // The Or parser
 //
 
-struct Or<A>(Box<Parser<A>>, Box<Parser<A>>);
+struct Or<A> (Box<Parser<A>>, Box<Parser<A>>);
 
 #[allow(unused_macros)]
 macro_rules! or {
@@ -197,7 +199,7 @@ mod tests_or {
 // The And parser
 //
 
-struct And<A, B>(Box<Parser<A>>, Box<Parser<B>>);
+struct And<A, B> (Box<Parser<A>>, Box<Parser<B>>);
 
 #[allow(unused_macros)]
 macro_rules! and {
@@ -244,7 +246,7 @@ mod tests_and {
 // The Opt parser
 //
 
-struct Opt<A>(Box<Parser<A>>);
+struct Opt<A> (Box<Parser<A>>);
 
 macro_rules! opt {
     ($a:expr) => { Opt(Box::new($a)) };
@@ -286,7 +288,7 @@ mod tests_opt {
 // The Repeatable parser
 //
 
-struct Repeat<A>(bool, Box<Parser<A>>);
+struct Repeat<A> (bool, Box<Parser<A>>);
 
 macro_rules! rep {
     ($a:expr) => { Repeat(false, Box::new($a)) };
@@ -300,12 +302,13 @@ impl<A> Parser<Vec<A>> for Repeat<A> {
     fn parse(&self, s: String) -> Response<Vec<A>> {
         let Repeat(opt, p) = self;
 
-        let mut values: Vec<A> = Vec::with_capacity(13);
+        let mut values: Vec<A> = Vec::with_capacity(if *opt { 0 } else { 1 });
         let mut source = s;
         let mut consumed = false;
 
         loop {
             let result = p.parse(source.clone());
+
             match result {
                 Success(a, s, b) => {
                     source = s;
@@ -317,7 +320,7 @@ impl<A> Parser<Vec<A>> for Repeat<A> {
                         return Reject(consumed);
                     }
 
-                    return Success(values, source.to_string(), consumed);
+                    return Success(values, source, consumed);
                 }
             }
         }
@@ -326,8 +329,8 @@ impl<A> Parser<Vec<A>> for Repeat<A> {
 
 #[cfg(test)]
 mod tests_repeat {
-    use crate::Repeat;
     use crate::Parser;
+    use crate::Repeat;
 
     #[test]
     fn it_parse_three_characters() {
@@ -340,13 +343,13 @@ mod tests_repeat {
     fn it_cannot_parse_a_character() {
         let response = rep!('a').parse("b".to_string());
 
-        assert_eq!(response.fold(&|_ , _, _| false, &|_| true), true);
+        assert_eq!(response.fold(&|_, _, _| false, &|_| true), true);
     }
 
     #[test]
     fn it_parse_nothing() {
         let response = optrep!('a').parse("b".to_string());
 
-        assert_eq!(response.fold(&|v , _, _| v.is_empty(), &|_| false), true);
+        assert_eq!(response.fold(&|v, _, _| v.is_empty(), &|_| false), true);
     }
 }
