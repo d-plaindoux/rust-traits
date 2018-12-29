@@ -5,4 +5,4 @@ authors = ["Didier Plaindoux <d.plaindoux@free.fr>"]
 edition = "2018"
 
 [dependencies]
-# core = "../core"
+core = { version = "0.1.0", path = "../core" }

@@ -11,7 +11,7 @@ trait Parser<A> {
 type Response<A> = core::Response<A, String>;
 
 //
-// The end of string
+// The end of String
 //
 
 struct Eos;
@@ -102,16 +102,10 @@ mod tests_any {
 
 impl Parser<char> for char {
     fn parse(&self, s: String) -> Response<char> {
-        Any.parse(s).fold(
-            &|v, s, b| {
-                if v != *self {
-                    return Reject(false);
-                }
-
-                Success(v, s, b)
-            },
-            &|_| Reject(false),
-        )
+        match Any.parse(s) {
+            Success(v, ref s, b) if { v == *self } => Success(v, s.to_string(), b),
+            _ => Reject(false)
+        }
     }
 }
 
@@ -163,6 +157,7 @@ mod tests_character {
 
 struct Or<A>(Box<Parser<A>>, Box<Parser<A>>);
 
+#[allow(unused_macros)]
 macro_rules! or {
     ($a:expr, $b:expr) => { Or(Box::new($a), Box::new($b)) };
 }
@@ -180,7 +175,6 @@ impl<A> Parser<A> for Or<A> {
 
 #[cfg(test)]
 mod tests_or {
-    use crate::Any;
     use crate::Or;
     use crate::Parser;
 
@@ -205,6 +199,7 @@ mod tests_or {
 
 struct And<A, B>(Box<Parser<A>>, Box<Parser<B>>);
 
+#[allow(unused_macros)]
 macro_rules! and {
     ($a:expr, $b:expr) => { And(Box::new($a), Box::new($b)) };
 }
@@ -228,7 +223,6 @@ impl<A, B> Parser<(A, B)> for And<A, B> {
 #[cfg(test)]
 mod tests_and {
     use crate::And;
-    use crate::Or;
     use crate::Parser;
 
     #[test]
@@ -246,3 +240,113 @@ mod tests_and {
     }
 }
 
+//
+// The Opt parser
+//
+
+struct Opt<A>(Box<Parser<A>>);
+
+macro_rules! opt {
+    ($a:expr) => { Opt(Box::new($a)) };
+}
+
+impl<A> Parser<Option<A>> for Opt<A> {
+    fn parse(&self, s: String) -> Response<Option<A>> {
+        let Opt(p) = self;
+
+        match p.parse(s.clone()) {
+            Success(v, s, b) => Success(Some(v), s, b),
+            Reject(b) if { !b } => Success(None, s, false),
+            _ => Reject(true)
+        }
+    }
+}
+
+#[cfg(test)]
+mod tests_opt {
+    use crate::Opt;
+    use crate::Parser;
+
+    #[test]
+    fn it_parse_a_character() {
+        let response = opt!('a').parse("ab".to_string());
+
+        assert_eq!(response.fold(&|v, _, _| v == Some('a'), &|_| false), true);
+    }
+
+    #[test]
+    fn it_parse_nothing() {
+        let response = opt!('a').parse("".to_string());
+
+        assert_eq!(response.fold(&|v, _, _| v == None, &|_| false), true);
+    }
+}
+
+//
+// The Repeatable parser
+//
+
+struct Repeat<A>(bool, Box<Parser<A>>);
+
+macro_rules! rep {
+    ($a:expr) => { Repeat(false, Box::new($a)) };
+}
+
+macro_rules! optrep {
+    ($a:expr) => { Repeat(true, Box::new($a)) };
+}
+
+impl<A> Parser<Vec<A>> for Repeat<A> {
+    fn parse(&self, s: String) -> Response<Vec<A>> {
+        let Repeat(opt, p) = self;
+
+        let mut values: Vec<A> = Vec::with_capacity(13);
+        let mut source = s;
+        let mut consumed = false;
+
+        loop {
+            let result = p.parse(source.clone());
+            match result {
+                Success(a, s, b) => {
+                    source = s;
+                    values.push(a);
+                    consumed = consumed || b;
+                }
+                _ => {
+                    if !*opt && values.is_empty() {
+                        return Reject(consumed);
+                    }
+
+                    return Success(values, source.to_string(), consumed);
+                }
+            }
+        }
+    }
+}
+
+#[cfg(test)]
+mod tests_repeat {
+    use crate::Repeat;
+    use crate::Parser;
+
+    #[test]
+    fn it_parse_three_characters() {
+        let response = rep!('a').parse("aaab".to_string());
+
+        assert_eq!(response.fold(&|v, _, _| v.len() == 3, &|_| false), true);
+    }
+
+    #[test]
+    fn it_cannot_parse_a_character() {
+        let response = rep!('a').parse("b".to_string());
+
+        assert_eq!(response.fold(&|_ , _, _| false, &|_| true), true);
+    }
+
+    #[test]
+    fn it_parse_nothing() {
+        let response = optrep!('a').parse("b".to_string());
+
+        assert_eq!(response.fold(&|v , _, _| v.is_empty(), &|_| false), true);
+    }
+}
