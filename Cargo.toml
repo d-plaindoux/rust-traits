@@ -4,4 +4,5 @@ members = [
     "core",
     "stage1",
     "stage2",
+    "stage3"
 ]
