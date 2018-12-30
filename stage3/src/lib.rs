@@ -1,5 +1,5 @@
 //
-// Stage 1: "The Generic approach - DSL Type"
+// Stage 1: "The Parametric approach"
 //
 
 use std::marker::PhantomData;
