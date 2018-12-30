@@ -1,5 +1,3 @@
-#[allow(dead_code)]
-
 pub enum Response<A, S> {
     Success(A, S, bool),
     Reject(bool),
@@ -7,9 +5,11 @@ pub enum Response<A, S> {
 
 impl<A, S> Response<A, S> {
     pub fn fold<B>(self, success: &Fn(A, S, bool) -> B, reject: &Fn(bool) -> B) -> B {
+        use crate::Response::{Success, Reject};
+
         match self {
-            Response::Success(a, s, b) => success(a, s, b),
-            Response::Reject(b) => reject(b)
+            Success(a, s, b) => success(a, s, b),
+            Reject(b) => reject(b)
         }
     }
 }
@@ -34,3 +34,4 @@ mod tests_response {
         assert_eq!(v.fold(&|_, _, _| true, &|_| false), false);
     }
 }
+

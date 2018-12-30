@@ -4,20 +4,27 @@
 
 use core::Response::{Reject, Success};
 
+//  ------------------------------------------------------------------------------------------------
+
+pub type Source = String;
+
+type Response<A> = core::Response<A, Source>;
+
+//  ------------------------------------------------------------------------------------------------
+
 trait Parser<A> {
-    fn parse(&self, s: String) -> Response<A>;
+    fn parse(&self, s: Source) -> Response<A>;
 }
 
-type Response<A> = core::Response<A, String>;
-
+//  ------------------------------------------------------------------------------------------------
 //
-// The end of String
+// The end of Source
 //
 
 struct Eos;
 
 impl Parser<()> for Eos {
-    fn parse(&self, s: String) -> Response<()> {
+    fn parse(&self, s: Source) -> Response<()> {
         if s.is_empty() {
             return Success((), s, false);
         }
@@ -46,6 +53,7 @@ mod tests_eos {
     }
 }
 
+//  ------------------------------------------------------------------------------------------------
 //
 // The any char parser
 //
@@ -53,7 +61,7 @@ mod tests_eos {
 struct Any;
 
 impl Parser<char> for Any {
-    fn parse(&self, s: String) -> Response<char> {
+    fn parse(&self, s: Source) -> Response<char> {
         if s.is_empty() {
             return Reject(false);
         }
@@ -96,12 +104,13 @@ mod tests_any {
     }
 }
 
+//  ------------------------------------------------------------------------------------------------
 //
 // The Char parser
 //
 
 impl Parser<char> for char {
-    fn parse(&self, s: String) -> Response<char> {
+    fn parse(&self, s: Source) -> Response<char> {
         if let Success(v, s, b) = Any.parse(s) {
             if v == *self {
                 return Success(v, s, b);
@@ -126,33 +135,100 @@ mod tests_character {
 
     #[test]
     fn it_cannot_parse_another_character() {
-        let response = ('b').parse("a".to_string());
+        let response = 'b'.parse("a".to_string());
 
         assert_eq!(response.fold(&|_, _, _| false, &|b| b == false), true);
     }
 
     #[test]
     fn it_parse_a_character_and_consume_it() {
-        let response = ('a').parse("a".to_string());
+        let response = 'a'.parse("a".to_string());
 
         assert_eq!(response.fold(&|_, s, _| s.len() == 0, &|_| false), true);
     }
 
     #[test]
     fn it_parse_a_character_and_set_as_consumed() {
-        let response = ('a').parse("a".to_string());
+        let response = 'a'.parse("a".to_string());
 
         assert_eq!(response.fold(&|_, _, b| b, &|_| false), true);
     }
 
     #[test]
     fn it_cannot_parse_a_character() {
-        let response = ('a').parse("".to_string());
+        let response = 'a'.parse("".to_string());
 
         assert_eq!(response.fold(&|_, _, _| false, &|_| true), true);
     }
 }
 
+//  ------------------------------------------------------------------------------------------------
+//
+// The Not Char parser
+//
+
+struct NotChar(char);
+
+macro_rules! not {
+    ($a:expr) => { NotChar($a) };
+}
+
+impl Parser<char> for NotChar {
+    fn parse(&self, s: Source) -> Response<char> {
+        let NotChar(c) = self;
+
+        if let Success(v, s, b) = Any.parse(s) {
+            if v != *c {
+                return Success(v, s, b);
+            }
+        }
+
+        Reject(false)
+    }
+}
+
+#[cfg(test)]
+mod tests_not_character {
+    use crate::NotChar;
+    use crate::Parser;
+
+    #[test]
+    fn it_parse_a_character() {
+        let response = NotChar('b').parse("a".to_string());
+
+        assert_eq!(response.fold(&|v, _, _| v == 'a', &|_| false), true);
+    }
+
+    #[test]
+    fn it_cannot_parse_another_character() {
+        let response = NotChar('a').parse("a".to_string());
+
+        assert_eq!(response.fold(&|_, _, _| false, &|b| b == false), true);
+    }
+
+    #[test]
+    fn it_parse_a_character_and_consume_it() {
+        let response = NotChar('b').parse("a".to_string());
+
+        assert_eq!(response.fold(&|_, s, _| s.len() == 0, &|_| false), true);
+    }
+
+    #[test]
+    fn it_parse_a_character_and_set_as_consumed() {
+        let response = NotChar('b').parse("a".to_string());
+
+        assert_eq!(response.fold(&|_, _, b| b, &|_| false), true);
+    }
+
+    #[test]
+    fn it_cannot_parse_a_character() {
+        let response = NotChar('a').parse("".to_string());
+
+        assert_eq!(response.fold(&|_, _, _| false, &|_| true), true);
+    }
+}
+
+//  ------------------------------------------------------------------------------------------------
 //
 // The Or parser
 //
@@ -165,7 +241,7 @@ macro_rules! or {
 }
 
 impl<A> Parser<A> for Or<A> {
-    fn parse(&self, s: String) -> Response<A> {
+    fn parse(&self, s: Source) -> Response<A> {
         let Or(left, right) = self;
 
         match left.parse(s.clone()) {
@@ -195,6 +271,7 @@ mod tests_or {
     }
 }
 
+//  ------------------------------------------------------------------------------------------------
 //
 // The And parser
 //
@@ -207,7 +284,7 @@ macro_rules! and {
 }
 
 impl<A, B> Parser<(A, B)> for And<A, B> {
-    fn parse(&self, s: String) -> Response<(A, B)> {
+    fn parse(&self, s: Source) -> Response<(A, B)> {
         let And(left, right) = self;
 
         match left.parse(s) {
@@ -242,6 +319,7 @@ mod tests_and {
     }
 }
 
+//  ------------------------------------------------------------------------------------------------
 //
 // The Opt parser
 //
@@ -253,7 +331,7 @@ macro_rules! opt {
 }
 
 impl<A> Parser<Option<A>> for Opt<A> {
-    fn parse(&self, s: String) -> Response<Option<A>> {
+    fn parse(&self, s: Source) -> Response<Option<A>> {
         let Opt(p) = self;
 
         match p.parse(s.clone()) {
@@ -284,6 +362,7 @@ mod tests_opt {
     }
 }
 
+//  ------------------------------------------------------------------------------------------------
 //
 // The Repeatable parser
 //
@@ -299,7 +378,7 @@ macro_rules! optrep {
 }
 
 impl<A> Parser<Vec<A>> for Repeat<A> {
-    fn parse(&self, s: String) -> Response<Vec<A>> {
+    fn parse(&self, s: Source) -> Response<Vec<A>> {
         let Repeat(opt, p) = self;
 
         let mut values: Vec<A> = Vec::with_capacity(if *opt { 0 } else { 1 });
@@ -352,4 +431,39 @@ mod tests_repeat {
 
         assert_eq!(response.fold(&|v, _, _| v.is_empty(), &|_| false), true);
     }
+}
+
+//  ------------------------------------------------------------------------------------------------
+//
+// Complex examples
+//
+
+fn delimited_string() -> And<char, (std::vec::Vec<char>, char)> {
+    let sep = '"';
+
+    and!(sep, and!(optrep!(not!(sep)), sep))
+}
+
+#[cfg(test)]
+mod tests_delimited_string {
+    use crate::And;
+    use crate::delimited_string;
+    use crate::Parser;
+
+    #[test]
+    fn it_parse_a_three_characters_string() {
+        let response = delimited_string().parse("\"aaa\"".to_string());
+        let v = (1, (2, 3));
+
+        assert_eq!(response.fold(&|(_, (v, _)), _, _| v.len() == 3, &|_| false), true);
+    }
+
+    #[test]
+    fn it_parse_an_empty_string() {
+        let response = delimited_string().parse("\"\"".to_string());
+        let v = (1, (2, 3));
+
+        assert_eq!(response.fold(&|(_, (v, _)), _, _| v.len() == 0, &|_| false), true);
+    }
+
 }
