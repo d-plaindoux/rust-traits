@@ -1,5 +1,5 @@
 //
-// Stage 1: "The Java addict approach but without clone"
+// Stage 2: "The Java addict approach but without string clone"
 //
 
 use core::Response::{Reject, Success};

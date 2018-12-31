@@ -1,5 +1,5 @@
 //
-// Stage 1: "The Parametric approach"
+//   Stage 3: "The zero-copy approach"
 //
 
 use std::marker::PhantomData;
@@ -240,9 +240,10 @@ mod tests_repeat {
 // Example examples
 //
 
-type StringDelim = And<Satisfy, And<Repeat<Satisfy, char>, Satisfy, Vec<char>, char>, char, (Vec<char>, char)>;
+// type Chars = Repeat<Satisfy, char>;
+// type CharsDelim = And<Satisfy, And<Chars, Satisfy, Vec<char>, char>, char, (Vec<char>, char)>;
 
-fn delimited_string() -> StringDelim {
+fn delimited_string() -> impl Parser<(char, (Vec<char>, char))> {
     let sep = '"';
 
     and!(char(sep), and!(optrep!(not(sep)), char(sep)))
