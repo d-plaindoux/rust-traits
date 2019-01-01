@@ -240,8 +240,8 @@ mod tests_repeat {
 // Example examples
 //
 
-// type Chars = Repeat<Satisfy, char>;
-// type CharsDelim = And<Satisfy, And<Chars, Satisfy, Vec<char>, char>, char, (Vec<char>, char)>;
+type Chars = Repeat<Satisfy, char>;
+type CharsDelim = And<Satisfy, And<Chars, Satisfy, Vec<char>, char>, char, (Vec<char>, char)>;
 
 fn delimited_string() -> impl Parser<(char, (Vec<char>, char))> {
     let sep = '"';
