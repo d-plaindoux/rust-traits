@@ -1,5 +1,5 @@
 //
-//   Stage 4: "Separation of concern"
+//   Stage 4: "Lifetime"
 //
 
 use std::marker::PhantomData;
@@ -15,8 +15,8 @@ type Response<A> = core::Response<A, usize>;
 
 trait Parser<A> {}
 
-trait Executable<A> {
-    fn parse(&self, s: &[u8], o: usize) -> Response<A>;
+trait Executable<'a, A> {
+    fn parse(&self, s: &'a [u8], o: usize) -> Response<A>;
 }
 
 // ------------------------------------------------------------------------------------------------
@@ -26,8 +26,8 @@ trait Executable<A> {
 
 impl<E> Parser<char> for E where E: Fn(char) -> bool {}
 
-impl<E> Executable<char> for E where E: Fn(char) -> bool {
-    fn parse(&self, s: &[u8], o: usize) -> Response<char> {
+impl<'a, E> Executable<'a, char> for E where E: Fn(char) -> bool {
+    fn parse(&self, s: &'a [u8], o: usize) -> Response<char> {
         if o >= s.len() {
             return Reject(false);
         }
@@ -123,11 +123,11 @@ impl<L, R, A, B> Parser<(A, B)> for And<L, R, A, B>
           R: Parser<B>
 {}
 
-impl<L, R, A, B> Executable<(A, B)> for And<L, R, A, B>
-    where L: Executable<A> + Parser<A>,
-          R: Executable<B> + Parser<B>
+impl<'a, L, R, A, B> Executable<'a, (A, B)> for And<L, R, A, B>
+    where L: Executable<'a, A> + Parser<A>,
+          R: Executable<'a, B> + Parser<B>
 {
-    fn parse(&self, s: &[u8], o: usize) -> Response<(A, B)> {
+    fn parse(&self, s: &'a [u8], o: usize) -> Response<(A, B)> {
         let And(left, right, _, _) = self;
 
         match left.parse(s, o) {
@@ -186,10 +186,10 @@ impl<P, A> Parser<Vec<A>> for Repeat<P, A>
     where P: Parser<A>
 {}
 
-impl<P, A> Executable<Vec<A>> for Repeat<P, A>
-    where P: Executable<A> + Parser<A>
+impl<'a, P, A> Executable<'a, Vec<A>> for Repeat<P, A>
+    where P: Executable<'a, A> + Parser<A>
 {
-    fn parse(&self, s: &[u8], o: usize) -> Response<Vec<A>> {
+    fn parse(&self, s: &'a [u8], o: usize) -> Response<Vec<A>> {
         let Repeat(opt, p, _) = self;
 
         let mut values: Vec<A> = Vec::with_capacity(if *opt { 0 } else { 1 });
@@ -253,7 +253,7 @@ mod tests_repeat {
 // Example examples
 //
 
-fn delimited_string() -> impl Executable<(char, (Vec<char>, char))> + Parser<(char, (Vec<char>, char))> {
+fn delimited_string<'a>() -> impl Executable<'a, (char, (Vec<char>, char))> + Parser<(char, (Vec<char>, char))> {
     let sep = '"';
 
     and!(char(sep), and!(optrep!(not(sep)), char(sep)))
