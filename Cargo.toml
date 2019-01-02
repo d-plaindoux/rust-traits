@@ -1,7 +1,7 @@
 [workspace]
 
 members = [
-    "expression_problem",
+    "example",
     "core",
     "stage1",
     "stage2",
