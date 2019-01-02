@@ -1,5 +1,5 @@
 //
-//   Stage 3: "The zero-copy approach"
+//   Stage 3: "No more Box"
 //
 
 use std::marker::PhantomData;
@@ -21,19 +21,17 @@ trait Parser<A> {
 // The Satisfy parser
 //
 
-struct Satisfy(Box<Fn(char) -> bool>);
+type Satisfy = Fn(char) -> bool;
 
-impl Parser<char> for Satisfy {
+impl<E> Parser<char> for E where E: Fn(char) -> bool {
     fn parse(&self, s: &[u8], o: usize) -> Response<char> {
-        let Satisfy(f) = self;
-
         if o >= s.len() {
             return Reject(false);
         }
 
         let c = s[o] as char; // Simplified approach
 
-        if f(c) {
+        if self(c) {
             return Success(c, o + 1, true);
         }
 
@@ -41,16 +39,16 @@ impl Parser<char> for Satisfy {
     }
 }
 
-fn any() -> Satisfy {
-    Satisfy(Box::new(|_| true))
+fn any() -> impl Fn(char) -> bool {
+    |_| true
 }
 
-fn char(c: char) -> Satisfy {
-    Satisfy(Box::new(move |v| v == c))
+fn char(c: char) -> impl Fn(char) -> bool {
+    move |v| v == c
 }
 
-fn not(c: char) -> Satisfy {
-    Satisfy(Box::new(move |v| v != c))
+fn not(c: char) -> impl Fn(char) -> bool {
+    move |v| v != c
 }
 
 #[cfg(test)]
@@ -113,7 +111,7 @@ struct And<L, R, A, B> (L, R, PhantomData<A>, PhantomData<B>)
           R: Parser<B>;
 
 macro_rules! and {
-    ($a:expr, $b:expr) => { And($a, $b, PhantomData, PhantomData) };
+( $ a: expr, $ b: expr) => { And( $ a, $ b, PhantomData, PhantomData) };
 }
 
 impl<L, R, A, B> Parser<(A, B)> for And<L, R, A, B>
@@ -167,11 +165,11 @@ struct Repeat<P, A> (bool, P, PhantomData<A>)
     where P: Parser<A>;
 
 macro_rules! rep {
-    ($a:expr) => { Repeat(false, $a, PhantomData) };
+( $ a: expr) => { Repeat(false, $ a, PhantomData) };
 }
 
 macro_rules! optrep {
-    ($a:expr) => { Repeat(true, $a, PhantomData) };
+( $ a: expr) => { Repeat(true, $ a, PhantomData) };
 }
 
 impl<P, A> Parser<Vec<A>> for Repeat<P, A>
@@ -194,7 +192,7 @@ impl<P, A> Parser<Vec<A>> for Repeat<P, A>
                     consumed = consumed || b;
                 }
                 _ => {
-                    if !*opt && values.is_empty() {
+                    if !*opt & &values.is_empty() {
                         return Reject(consumed);
                     }
 
@@ -246,7 +244,7 @@ type CharsDelim = And<Satisfy, And<Chars, Satisfy, Vec<char>, char>, char, (Vec<
 fn delimited_string() -> impl Parser<(char, (Vec<char>, char))> {
     let sep = '"';
 
-    and!(char(sep), and!(optrep!(not(sep)), char(sep)))
+    and!(char(sep), and ! (optrep ! (not(sep)), char(sep)))
 }
 
 #[cfg(test)]

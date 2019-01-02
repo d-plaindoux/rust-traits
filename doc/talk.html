@@ -15,7 +15,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 
     <link rel="stylesheet" href="css/reveal.css">
-    <link rel="stylesheet" href="css/theme/serif.css" id="theme">
+    <link rel="stylesheet" href="css/theme/beige.css" id="theme">
 
     <!-- Code syntax highlighting -->
     <link rel="stylesheet" href="lib/css/zenburn.css">
@@ -110,7 +110,7 @@
         <!-- ####################### -->
 
         <section>
-            <h4> Programmation par Traits <br><span class="fragment">sous l'influence de la gestion mémoire</span></h4>
+            <h3> Programmation par Traits <br><span class="fragment">sous l'influence de la gestion mémoire</span></h3>
             <br> Montpellier Rust Meetup </br>
             <p><img style="vertical-align: middle;" class="plain img-circle" width="6%" src="images/photo.jpg">
                 &nbsp; <a style="font-size:30px" href="http://twitter.com/dplaindoux">@dplaindoux</a></p>
@@ -134,18 +134,18 @@
         <!-- ####################### -->
 
         <section>
-            <h4><img src="images/Rust.png" width='5%'> / Système </h4>
+            <h3><img src="images/Rust.png" width='5%'> / Système </h3>
             <ul>
                 <li type="none" class="fragment"> “zero cost abstractions”</li>
-                <li type="none" class="fragment"> Richesse du typage</li>
                 <li type="none" class="fragment"> Pas de ramasse miette</li>
+                <li type="none" class="fragment"> Richesse du typage</li>
             </ul>
         </section>
 
         <!-- ####################### -->
 
         <section>
-            <h4><img src="images/Rust.png" align="middle" width='5%'> / Fonctionnel </h4>
+            <h3><img src="images/Rust.png" align="middle" width='5%'> / Fonctionnel </h3>
             <ul>
                 <li type="none" class="fragment"> Fonction d'ordre supérieur</li>
                 <li type="none" class="fragment"> Pattern Matching</li>
@@ -156,23 +156,17 @@
         <!-- ####################### -->
 
         <section>
-            <h4><img src="images/Rust.png" width='5%'> / Modularité </h4>
+            <h3><img src="images/Rust.png" width='5%'> / Modularité </h3>
             <ul>
-                <li type="none" class="fragment"> Polymorphisme ad-hoc</li>
-                <li type="none" class="fragment"> "Typeclasses" à la Haskell</li>
+                <li type="none" class="fragment"> Concept de trait </li>
+                <li type="none" class="fragment"> Polymorphisme ad-hoc </li>
+                <li type="none" class="fragment"> "Typeclasses" à la Haskell </li>
             </ul>
         </section>
-
         <!-- ####################### -->
 
         <section>
-            <h4> Piqure de rappel </h4>
-        </section>
-
-        <!-- ####################### -->
-
-        <section>
-            <h4> Je ne parlerai pas de ... </h4>
+            <h3> Je ne parlerai pas de ... </h3>
 
             <ul>
                 <li class="fragment" type="none"> Compteur de référence aka RC </li>
@@ -183,7 +177,7 @@
         <!-- ####################### -->
 
         <section>
-            <h4> Je parlerai de ... </h4>
+            <h3> Je parlerai de ... </h3>
 
             <ul>
                 <li class="fragment" type="none"> Structure de donnée </li>
@@ -196,7 +190,14 @@
         <!-- ####################### -->
 
         <section>
-            <h4> Structure </h4>
+            <img src="images/Rust.png" width='15%'>
+            <h3> &#x1F489; de rappel </h3>
+        </section>
+
+        <!-- ####################### -->
+
+        <section>
+            <h3> Structure </h3>
 
             <pre><code style="font-size:80%" data-trim data-noescape class="Rust">
                 struct MyStruct(String);
@@ -218,7 +219,7 @@
         <!-- ####################### -->
 
         <section>
-            <h4> Trait </h4>
+            <h3> Trait </h3>
 
             <pre><code style="font-size:80%" data-trim data-noescape class="Rust">
                 trait MyTrait {
@@ -233,7 +234,7 @@
         <!-- ####################### -->
 
         <section>
-            <h4> Implementation 1/2 </h4>
+            <h3> Implementation 1/2 </h3>
 
             <pre><code style="font-size:80%" data-trim data-noescape class="Rust">
                 impl MyTrait for MyStruct {
@@ -252,7 +253,7 @@
         <!-- ####################### -->
 
         <section>
-            <h4> Implementation 2/2 </h4>
+            <h3> Implementation 2/2 </h3>
 
             <pre><code style="font-size:80%" data-trim data-noescape class="Rust">
                 impl MyTrait for String {
@@ -271,7 +272,7 @@
         <!-- ####################### -->
 
         <section>
-            <h4> Execution </h4>
+            <h3> Execution </h3>
 
             <pre><code style="font-size:80% " data-trim data-noescape class="Rust">
                 fn main() {
@@ -294,17 +295,19 @@
         <!-- ####################### -->
 
         <section>
-            <h4> Passage à la pratique </h4>
+            <h3> Un peu de pratique </h3>
 
             <code class="fragment" style="font-size:80%" data-trim data-noescape class="Ocaml">
                 parser : &forall; A &rArr; String &rarr; Response&lt;A>
             </code>
+
+            <p class="fragment"> Parser combinateur &#x1F631; </p>
         </section>
 
         <!-- ####################### -->
 
         <section>
-            <h4> Stage #1 - Live Coding </h4>
+            <h3> Stage #1 - Live Coding </h3>
 
             <p> L'approche naïve </p>
         </section>
@@ -312,26 +315,26 @@
         <!-- ####################### -->
 
         <section>
-            <h4> Problèmes ouverts </h4>
+            <h3> Problèmes ouverts </h3>
 
             <ul>
-                <li> Clonage de la chaîne et sous chaîne </li>
-                <li> Utilisation de <tt>Box</tt>  </li>
+                <li> Clonage de chaîne et sous chaîne </li>
+                <li> Utilisation de <span class="keyword">Box</span>  </li>
             </ul>
         </section>
 
         <!-- ####################### -->
 
         <section>
-            <h4> Stage #2 - Live Coding </h4>
+            <h3> Stage #2 - Live Coding </h3>
 
-            <p> Zero copie ! </p>
+            <p> Zéro copie ! </p>
         </section>
 
         <!-- ####################### -->
 
         <section>
-            <h4> Problèmes ouverts </h4>
+            <h3> Problèmes ouverts </h3>
 
             <ul>
                 <li> Utilisation de <tt>Box</tt> </li>
@@ -342,15 +345,15 @@
         <!-- ####################### -->
 
         <section>
-            <h4> Stage #3 - Live Coding </h4>
+            <h3> Stage #3 - Live Coding </h3>
 
-            <p> Polymorphime paramétrique </p>
+            <p> Polymorphisme paramétrique </p>
         </section>
 
         <!-- ####################### -->
 
         <section>
-            <h4> Problème ouvert </h4>
+            <h3> Problème ouvert </h3>
 
             <ul>
                 <li> Impossible de capturer un fragment </li>
@@ -360,17 +363,9 @@
         <!-- ####################### -->
 
         <section>
-            <h4> Stage #4 - Live Coding </h4>
+            <h3> Stage #4 - Live Coding </h3>
 
             <p> Lifetime </p>
-        </section>
-
-        <!-- ####################### -->
-
-        <section>
-            <h4> Stage #5 - Live Coding </h4>
-
-            <p> "Expression problem" </p>
         </section>
 
         <!-- ####################### -->
