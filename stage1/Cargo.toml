@@ -5,4 +5,13 @@ authors = ["Didier Plaindoux <d.plaindoux@free.fr>"]
 edition = "2018"
 
 [dependencies]
+bencher = "0.1"
 core = { version = "0.1.0", path = "../core" }
+
+[profile.release]
+lto = "fat"
+codegen-units = 1
+
+[[bench]]
+name = "parser"
+harness = false

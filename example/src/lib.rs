@@ -48,4 +48,3 @@ mod tests {
         assert_eq!(object.description(), "test".to_string());
     }
 }
-

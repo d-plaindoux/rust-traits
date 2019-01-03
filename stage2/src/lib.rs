@@ -10,7 +10,7 @@ type Response<A> = core::Response<A, usize>;
 
 //  ------------------------------------------------------------------------------------------------
 
-trait Parser<A> {
+pub trait Parser<A> {
     fn parse(&self, s: &[u8], o: usize) -> Response<A>;
 }
 
@@ -19,7 +19,7 @@ trait Parser<A> {
 // The Satisfy parser
 //
 
-struct Satisfy(Box<Fn(char) -> bool>);
+pub struct Satisfy(pub Box<Fn(char) -> bool>);
 
 impl Parser<char> for Satisfy {
     fn parse(&self, s: &[u8], o: usize) -> Response<char> {
@@ -154,8 +154,9 @@ mod tests_and {
 // The Repeatable parser
 //
 
-struct Repeat<A> (bool, Box<Parser<A>>);
+pub struct Repeat<A> (pub bool, pub Box<Parser<A>>);
 
+#[macro_export]
 macro_rules! rep {
     ($a:expr) => { Repeat(false, Box::new($a)) };
 }
@@ -226,7 +227,9 @@ mod tests_repeat {
 // Example examples
 //
 
-fn delimited_string() -> And<char, (std::vec::Vec<char>, char)> {
+type StringDelim = And<char, (Vec<char>, char)>;
+
+pub fn delimited_string() -> impl Parser<(char, (Vec<char>, char))> {
     let sep = '"';
 
     and!(char(sep), and!(optrep!(not(sep)), char(sep)))

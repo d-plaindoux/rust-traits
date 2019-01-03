@@ -12,7 +12,7 @@ type Response<A> = core::Response<A, Source>;
 
 //  ------------------------------------------------------------------------------------------------
 
-trait Parser<A> {
+pub trait Parser<A> {
     fn parse(&self, s: Source) -> Response<A>;
 }
 
@@ -45,11 +45,11 @@ fn any() -> Satisfy {
     Satisfy(Box::new(|_| true))
 }
 
-fn char(c:char) -> Satisfy {
+fn char(c: char) -> Satisfy {
     Satisfy(Box::new(move |v| v == c))
 }
 
-fn not(c:char) -> Satisfy {
+fn not(c: char) -> Satisfy {
     Satisfy(Box::new(move |v| v != c))
 }
 
@@ -101,7 +101,6 @@ mod tests_satisfy {
 
         assert_eq!(response.fold(&|v, _, _| false, &|_| true), true);
     }
-
 }
 
 //  ------------------------------------------------------------------------------------------------
@@ -109,7 +108,7 @@ mod tests_satisfy {
 // The And parser
 //
 
-struct And<A, B> (Box<Parser<A>>, Box<Parser<B>>);
+struct And<A, B> (pub Box<Parser<A>>, pub Box<Parser<B>>);
 
 macro_rules! and {
     ($a:expr, $b:expr) => { And(Box::new($a), Box::new($b)) };
@@ -133,8 +132,8 @@ impl<A, B> Parser<(A, B)> for And<A, B> {
 
 #[cfg(test)]
 mod tests_and {
-    use crate::char;
     use crate::And;
+    use crate::char;
     use crate::Parser;
 
     #[test]
@@ -157,8 +156,9 @@ mod tests_and {
 // The Repeatable parser
 //
 
-struct Repeat<A> (bool, Box<Parser<A>>);
+pub struct Repeat<A> (pub bool, pub Box<Parser<A>>);
 
+#[macro_export]
 macro_rules! rep {
     ($a:expr) => { Repeat(false, Box::new($a)) };
 }
@@ -229,7 +229,9 @@ mod tests_repeat {
 // Example examples
 //
 
-fn delimited_string() -> And<char, (std::vec::Vec<char>, char)> {
+type StringDelim = And<char, (Vec<char>, char)>;
+
+pub fn delimited_string() -> impl Parser<(char, (Vec<char>, char))> {
     let sep = '"';
 
     and!(char(sep), and!(optrep!(not(sep)), char(sep)))

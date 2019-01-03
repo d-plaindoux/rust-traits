@@ -13,9 +13,9 @@ type Response<A> = core::Response<A, usize>;
 //  ------------------------------------------------------------------------------------------------
 // Separate type from behaviors
 
-trait Parser<A> {}
+pub trait Parser<A> {}
 
-trait Executable<A> {
+pub trait Executable<A> {
     fn parse(&self, s: &[u8], o: usize) -> Response<A>;
 }
 
@@ -171,9 +171,10 @@ mod tests_and {
 // The Repeatable parser
 //
 
-struct Repeat<P, A> (bool, P, PhantomData<A>)
+pub struct Repeat<P, A> (pub bool, pub P, pub PhantomData<A>)
     where P: Parser<A>;
 
+#[macro_export]
 macro_rules! rep {
 ( $ a: expr) => { Repeat(false, $ a, PhantomData) };
 }
@@ -253,7 +254,7 @@ mod tests_repeat {
 // Example examples
 //
 
-fn delimited_string() -> impl Executable<(char, (Vec<char>, char))> + Parser<(char, (Vec<char>, char))> {
+pub fn delimited_string() -> impl Executable<(char, (Vec<char>, char))> + Parser<(char, (Vec<char>, char))> {
     let sep = '"';
 
     and!(char(sep), and!(optrep!(not(sep)), char(sep)))

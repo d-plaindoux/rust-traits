@@ -12,7 +12,7 @@ type Response<A> = core::Response<A, usize>;
 
 //  ------------------------------------------------------------------------------------------------
 
-trait Parser<A> {
+pub trait Parser<A> {
     fn parse(&self, s: &[u8], o: usize) -> Response<A>;
 }
 
@@ -161,9 +161,10 @@ mod tests_and {
 // The Repeatable parser
 //
 
-struct Repeat<P, A> (bool, P, PhantomData<A>)
+pub struct Repeat<P, A> (pub bool, pub P, pub PhantomData<A>)
     where P: Parser<A>;
 
+#[macro_export]
 macro_rules! rep {
 ( $ a: expr) => { Repeat(false, $ a, PhantomData) };
 }
@@ -241,7 +242,7 @@ mod tests_repeat {
 type Chars = Repeat<Satisfy, char>;
 type CharsDelim = And<Satisfy, And<Chars, Satisfy, Vec<char>, char>, char, (Vec<char>, char)>;
 
-fn delimited_string() -> impl Parser<(char, (Vec<char>, char))> {
+pub fn delimited_string() -> impl Parser<(char, (Vec<char>, char))> {
     let sep = '"';
 
     and!(char(sep), and ! (optrep ! (not(sep)), char(sep)))

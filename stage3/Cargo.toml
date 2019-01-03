@@ -4,5 +4,11 @@ version = "0.1.0"
 authors = ["Didier Plaindoux <d.plaindoux@free.fr>"]
 edition = "2018"
 
+
 [dependencies]
+bencher = "0.1"
 core = { version = "0.1.0", path = "../core" }
+
+[[bench]]
+name = "parser"
+harness = false
