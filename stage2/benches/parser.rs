@@ -10,6 +10,7 @@ use stage2::*;
 fn literal_delimited_string(b: &mut Bencher) {
     let string = "\"Hello World!\"".repeat(1024);
     let data = string.as_bytes();
+    b.bytes = data.len() as u64;
     parse(rep!(delimited_string()), b, data)
 }
 
