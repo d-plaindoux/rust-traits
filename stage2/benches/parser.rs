@@ -1,6 +1,5 @@
 #[macro_use]
 extern crate bencher;
-#[macro_use]
 extern crate stage2;
 
 use bencher::{black_box, Bencher};

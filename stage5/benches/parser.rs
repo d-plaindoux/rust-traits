@@ -1,6 +1,5 @@
 #[macro_use]
 extern crate bencher;
-#[macro_use]
 extern crate stage5;
 
 use std::marker::PhantomData;
