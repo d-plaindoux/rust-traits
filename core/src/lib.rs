@@ -4,7 +4,10 @@ pub enum Response<A, S> {
 }
 
 impl<A, S> Response<A, S> {
-    pub fn fold<B>(self, success: &Fn(A, S, bool) -> B, reject: &Fn(bool) -> B) -> B {
+    pub fn fold<FS, FR, B>(self, success: FS, reject: FR) -> B
+        where FS: Fn(A, S, bool) -> B,
+              FR: Fn(bool) -> B
+    {
         use crate::Response::{Success, Reject};
 
         match self {
@@ -24,14 +27,14 @@ mod tests_response {
     fn it_fold_a_success() {
         let v: Response<u32> = Success(1, (), true);
 
-        assert_eq!(v.fold(&|_, _, _| true, &|_| false), true);
+        assert_eq!(v.fold(|_, _, _| true, |_| false), true);
     }
 
     #[test]
     fn it_fold_a_reject() {
         let v: Response<u32> = Reject(true);
 
-        assert_eq!(v.fold(&|_, _, _| true, &|_| false), false);
+        assert_eq!(v.fold(|_, _, _| true, |_| false), false);
     }
 }
 

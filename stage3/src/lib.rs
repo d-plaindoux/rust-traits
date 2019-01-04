@@ -62,42 +62,42 @@ mod tests_satisfy {
     fn it_parse_any_character() {
         let response = any().parse(b"a", 0);
 
-        assert_eq!(response.fold(&|v, _, _| v == 'a', &|_| false), true);
+        assert_eq!(response.fold(|v, _, _| v == 'a', |_| false), true);
     }
 
     #[test]
     fn it_cannot_parse_any_character() {
         let response = any().parse(b"", 0);
 
-        assert_eq!(response.fold(&|v, _, _| false, &|_| true), true);
+        assert_eq!(response.fold(|v, _, _| false, |_| true), true);
     }
 
     #[test]
     fn it_parse_a_specific_character() {
         let response = char('a').parse(b"a", 0);
 
-        assert_eq!(response.fold(&|v, _, _| v == 'a', &|_| false), true);
+        assert_eq!(response.fold(|v, _, _| v == 'a', |_| false), true);
     }
 
     #[test]
     fn it_cannot_parse_a_specific_character() {
         let response = char('a').parse(b"b", 0);
 
-        assert_eq!(response.fold(&|v, _, _| false, &|_| true), true);
+        assert_eq!(response.fold(|v, _, _| false, |_| true), true);
     }
 
     #[test]
     fn it_parse_another_specific_character() {
         let response = not('b').parse(b"a", 0);
 
-        assert_eq!(response.fold(&|v, _, _| v == 'a', &|_| false), true);
+        assert_eq!(response.fold(|v, _, _| v == 'a', |_| false), true);
     }
 
     #[test]
     fn it_cannot_parse_another_specific_character() {
         let response = not('a').parse(b"a", 0);
 
-        assert_eq!(response.fold(&|v, _, _| false, &|_| true), true);
+        assert_eq!(response.fold(|v, _, _| false, |_| true), true);
     }
 }
 
@@ -145,14 +145,14 @@ mod tests_and {
     fn it_parse_two_characters() {
         let response = and!(char('a'), char('b')).parse(b"ab", 0);
 
-        assert_eq!(response.fold(&|v, _, _| v == ('a', 'b'), &|_| false), true);
+        assert_eq!(response.fold(|v, _, _| v == ('a', 'b'), |_| false), true);
     }
 
     #[test]
     fn it_cannot_parse_two_characters() {
         let response = and!(char('a'), char('b')).parse(b"", 0);
 
-        assert_eq!(response.fold(&|_, _, _| false, &|_| true), true);
+        assert_eq!(response.fold(|_, _, _| false, |_| true), true);
     }
 }
 
@@ -216,21 +216,21 @@ mod tests_repeat {
     fn it_parse_three_characters() {
         let response = rep!(char('a')).parse(b"aaab", 0);
 
-        assert_eq!(response.fold(&|v, _, _| v.len() == 3, &|_| false), true);
+        assert_eq!(response.fold(|v, _, _| v.len() == 3, |_| false), true);
     }
 
     #[test]
     fn it_cannot_parse_a_character() {
         let response = rep!(char('a')).parse(b"b", 0);
 
-        assert_eq!(response.fold(&|_, _, _| false, &|_| true), true);
+        assert_eq!(response.fold(|_, _, _| false, |_| true), true);
     }
 
     #[test]
     fn it_parse_nothing() {
         let response = optrep!(char('a')).parse(b"b", 0);
 
-        assert_eq!(response.fold(&|v, _, _| v.is_empty(), &|_| false), true);
+        assert_eq!(response.fold(|v, _, _| v.is_empty(), |_| false), true);
     }
 }
 
@@ -250,7 +250,6 @@ pub fn delimited_string() -> impl Parser<(char, (Vec<char>, char))> {
 
 #[cfg(test)]
 mod tests_delimited_string {
-    use crate::And;
     use crate::delimited_string;
     use crate::Parser;
 
@@ -259,7 +258,7 @@ mod tests_delimited_string {
         let response = delimited_string().parse(b"\"aaa\"", 0);
         let v = (1, (2, 3));
 
-        assert_eq!(response.fold(&|(_, (v, _)), _, _| v.len() == 3, &|_| false), true);
+        assert_eq!(response.fold(|(_, (v, _)), _, _| v.len() == 3, |_| false), true);
     }
 
     #[test]
@@ -267,6 +266,6 @@ mod tests_delimited_string {
         let response = delimited_string().parse(b"\"\"", 0);
         let v = (1, (2, 3));
 
-        assert_eq!(response.fold(&|(_, (v, _)), _, _| v.len() == 0, &|_| false), true);
+        assert_eq!(response.fold(|(_, (v, _)), _, _| v.len() == 0, |_| false), true);
     }
 }

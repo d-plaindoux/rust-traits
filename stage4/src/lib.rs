@@ -60,7 +60,6 @@ mod tests_satisfy {
     use crate::char;
     use crate::Executable;
     use crate::not;
-    use crate::Parser;
 
     #[test]
     fn it_parse_any_character() {
@@ -149,7 +148,6 @@ mod tests_and {
     use crate::And;
     use crate::char;
     use crate::Executable;
-    use crate::Parser;
 
     #[test]
     fn it_parse_two_characters() {
@@ -231,21 +229,21 @@ mod tests_repeat {
     fn it_parse_three_characters() {
         let response = rep!(char('a')).parse(b"aaab", 0);
 
-        assert_eq!(response.fold(&|v, _, _| v.len() == 3, &|_| false), true);
+        assert_eq!(response.fold(|v, _, _| v.len() == 3, |_| false), true);
     }
 
     #[test]
     fn it_cannot_parse_a_character() {
         let response = rep!(char('a')).parse(b"b", 0);
 
-        assert_eq!(response.fold(&|_, _, _| false, &|_| true), true);
+        assert_eq!(response.fold(|_, _, _| false, |_| true), true);
     }
 
     #[test]
     fn it_parse_nothing() {
         let response = optrep!(char('a')).parse(b"b", 0);
 
-        assert_eq!(response.fold(&|v, _, _| v.is_empty(), &|_| false), true);
+        assert_eq!(response.fold(|v, _, _| v.is_empty(), |_| false), true);
     }
 }
 
@@ -262,24 +260,20 @@ pub fn delimited_string() -> impl Executable<(char, (Vec<char>, char))> + Parser
 
 #[cfg(test)]
 mod tests_delimited_string {
-    use crate::And;
     use crate::delimited_string;
     use crate::Executable;
-    use crate::Parser;
 
     #[test]
     fn it_parse_a_three_characters_string() {
         let response = delimited_string().parse(b"\"aaa\"", 0);
-        let v = (1, (2, 3));
 
-        assert_eq!(response.fold(&|(_, (v, _)), _, _| v.len() == 3, &|_| false), true);
+        assert_eq!(response.fold(|(_, (v, _)), _, _| v.len() == 3, |_| false), true);
     }
 
     #[test]
     fn it_parse_an_empty_string() {
         let response = delimited_string().parse(b"\"\"", 0);
-        let v = (1, (2, 3));
 
-        assert_eq!(response.fold(&|(_, (v, _)), _, _| v.len() == 0, &|_| false), true);
+        assert_eq!(response.fold(|(_, (v, _)), _, _| v.len() == 0, |_| false), true);
     }
 }

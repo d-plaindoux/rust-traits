@@ -17,10 +17,10 @@ fn parse<E, A>(p: E, b: &mut Bencher, buffer: String)
     where
         E: Parser<A>,
 {
-    b.iter(|| {
-        let buffer = black_box(buffer.clone());
+    let buffer = black_box(buffer);
 
-        match p.parse(buffer) {
+    b.iter(|| {
+        match p.parse(buffer.clone()) {
             Success(_,ref s,_) if { s.is_empty() } => (),
             _ => panic!("unable parse stream"),
         }

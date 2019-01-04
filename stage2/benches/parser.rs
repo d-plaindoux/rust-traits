@@ -18,9 +18,9 @@ fn parse<E, A>(p: E, b: &mut Bencher, buffer: &[u8])
     where
         E: Parser<A>,
 {
-    b.iter(|| {
-        let buffer = black_box(buffer);
+    let buffer = black_box(buffer);
 
+    b.iter(|| {
         match p.parse(buffer, 0) {
             Success(_, s,_) if { s == buffer.len() } => (),
             _ => panic!("unable parse stream"),
