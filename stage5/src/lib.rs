@@ -253,7 +253,9 @@ mod tests_repeat {
 // Example examples
 //
 
-pub fn delimited_string<'a>() -> impl Executable<'a, (char, (Vec<char>, char))> + Parser<(char, (Vec<char>, char))> {
+type Delimited = (char, (Vec<char>, char));
+
+pub fn delimited_string<'a>() -> impl Executable<'a, Delimited> + Parser<Delimited> {
     let sep = '"';
 
     and!(char(sep), and!(optrep!(not(sep)), char(sep)))

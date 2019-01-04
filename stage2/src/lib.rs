@@ -231,7 +231,9 @@ mod tests_repeat {
 
 // type StringDelim = And<char, (Vec<char>, char)>;
 
-pub fn delimited_string() -> impl Parser<(char, (Vec<char>, char))> {
+type Delimited = (char, (Vec<char>, char));
+
+pub fn delimited_string() -> impl Parser<Delimited> {
     let sep = '"';
 
     and!(char(sep), and!(optrep!(not(sep)), char(sep)))
