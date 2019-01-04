@@ -1,3 +1,5 @@
+#![allow(dead_code)]
+
 //
 //   Stage 4: "Lifetime"
 //
@@ -60,7 +62,6 @@ mod tests_satisfy {
     use crate::char;
     use crate::Executable;
     use crate::not;
-    use crate::Parser;
 
     #[test]
     fn it_parse_any_character() {
@@ -73,7 +74,7 @@ mod tests_satisfy {
     fn it_cannot_parse_any_character() {
         let response = any().parse(b"", 0);
 
-        assert_eq!(response.fold(|v, _, _| false, |_| true), true);
+        assert_eq!(response.fold(|_, _, _| false, |_| true), true);
     }
 
     #[test]
@@ -87,7 +88,7 @@ mod tests_satisfy {
     fn it_cannot_parse_a_specific_character() {
         let response = char('a').parse(b"b", 0);
 
-        assert_eq!(response.fold(|v, _, _| false, |_| true), true);
+        assert_eq!(response.fold(|_, _, _| false, |_| true), true);
     }
 
     #[test]
@@ -101,7 +102,7 @@ mod tests_satisfy {
     fn it_cannot_parse_another_specific_character() {
         let response = not('a').parse(b"a", 0);
 
-        assert_eq!(response.fold(|v, _, _| false, |_| true), true);
+        assert_eq!(response.fold(|_, _, _| false, |_| true), true);
     }
 }
 
@@ -149,7 +150,6 @@ mod tests_and {
     use crate::And;
     use crate::char;
     use crate::Executable;
-    use crate::Parser;
 
     #[test]
     fn it_parse_two_characters() {
@@ -224,7 +224,6 @@ mod tests_repeat {
 
     use crate::char;
     use crate::Executable;
-    use crate::Parser;
     use crate::Repeat;
 
     #[test]
@@ -262,10 +261,8 @@ pub fn delimited_string<'a>() -> impl Executable<'a, (char, (Vec<char>, char))> 
 
 #[cfg(test)]
 mod tests_delimited_string {
-    use crate::And;
     use crate::delimited_string;
     use crate::Executable;
-    use crate::Parser;
 
     #[test]
     fn it_parse_a_three_characters_string() {

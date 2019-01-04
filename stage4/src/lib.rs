@@ -1,3 +1,5 @@
+#![allow(dead_code)]
+
 //
 //   Stage 4: "Separation of concern"
 //
@@ -65,42 +67,42 @@ mod tests_satisfy {
     fn it_parse_any_character() {
         let response = any().parse(b"a", 0);
 
-        assert_eq!(response.fold(&|v, _, _| v == 'a', &|_| false), true);
+        assert_eq!(response.fold(|v, _, _| v == 'a', |_| false), true);
     }
 
     #[test]
     fn it_cannot_parse_any_character() {
         let response = any().parse(b"", 0);
 
-        assert_eq!(response.fold(&|v, _, _| false, &|_| true), true);
+        assert_eq!(response.fold(|_, _, _| false, |_| true), true);
     }
 
     #[test]
     fn it_parse_a_specific_character() {
         let response = char('a').parse(b"a", 0);
 
-        assert_eq!(response.fold(&|v, _, _| v == 'a', &|_| false), true);
+        assert_eq!(response.fold(|v, _, _| v == 'a', |_| false), true);
     }
 
     #[test]
     fn it_cannot_parse_a_specific_character() {
         let response = char('a').parse(b"b", 0);
 
-        assert_eq!(response.fold(&|v, _, _| false, &|_| true), true);
+        assert_eq!(response.fold(|_, _, _| false, |_| true), true);
     }
 
     #[test]
     fn it_parse_another_specific_character() {
         let response = not('b').parse(b"a", 0);
 
-        assert_eq!(response.fold(&|v, _, _| v == 'a', &|_| false), true);
+        assert_eq!(response.fold(|v, _, _| v == 'a', |_| false), true);
     }
 
     #[test]
     fn it_cannot_parse_another_specific_character() {
         let response = not('a').parse(b"a", 0);
 
-        assert_eq!(response.fold(&|v, _, _| false, &|_| true), true);
+        assert_eq!(response.fold(|_, _, _| false, |_| true), true);
     }
 }
 
@@ -153,14 +155,14 @@ mod tests_and {
     fn it_parse_two_characters() {
         let response = and!(char('a'), char('b')).parse(b"ab", 0);
 
-        assert_eq!(response.fold(&|v, _, _| v == ('a', 'b'), &|_| false), true);
+        assert_eq!(response.fold(|v, _, _| v == ('a', 'b'), |_| false), true);
     }
 
     #[test]
     fn it_cannot_parse_two_characters() {
         let response = and!(char('a'), char('b')).parse(b"", 0);
 
-        assert_eq!(response.fold(&|_, _, _| false, &|_| true), true);
+        assert_eq!(response.fold(|_, _, _| false, |_| true), true);
     }
 }
 
@@ -222,7 +224,6 @@ mod tests_repeat {
 
     use crate::char;
     use crate::Executable;
-    use crate::Parser;
     use crate::Repeat;
 
     #[test]

@@ -1,3 +1,5 @@
+#![allow(dead_code)]
+
 trait MyTrait {
     fn new(source: String) -> Self;
 

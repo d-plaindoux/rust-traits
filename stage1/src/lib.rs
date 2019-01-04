@@ -1,3 +1,5 @@
+#![allow(dead_code)]
+
 //
 // Stage 1: "The Java addict approach"
 //
@@ -39,6 +41,7 @@ impl Parser<char> for Satisfy {
     }
 }
 
+
 fn any() -> Satisfy {
     Satisfy(Box::new(|_| true))
 }
@@ -69,7 +72,7 @@ mod tests_satisfy {
     fn it_cannot_parse_any_character() {
         let response = any().parse("".to_string());
 
-        assert_eq!(response.fold(|v, _, _| false, |_| true), true);
+        assert_eq!(response.fold(|_, _, _| false, |_| true), true);
     }
 
     #[test]
@@ -83,7 +86,7 @@ mod tests_satisfy {
     fn it_cannot_parse_a_specific_character() {
         let response = char('a').parse("b".to_string());
 
-        assert_eq!(response.fold(|v, _, _| false, |_| true), true);
+        assert_eq!(response.fold(|_, _, _| false, |_| true), true);
     }
 
     #[test]
@@ -97,7 +100,7 @@ mod tests_satisfy {
     fn it_cannot_parse_another_specific_character() {
         let response = not('a').parse("a".to_string());
 
-        assert_eq!(response.fold(|v, _, _| false, |_| true), true);
+        assert_eq!(response.fold(|_, _, _| false, |_| true), true);
     }
 }
 
@@ -170,15 +173,15 @@ impl<A> Parser<Vec<A>> for Repeat<A> {
         let Repeat(opt, p) = self;
 
         let mut values: Vec<A> = Vec::with_capacity(if *opt { 0 } else { 1 });
-        let mut String = s;
+        let mut source = s;
         let mut consumed = false;
 
         loop {
-            let result = p.parse(String.clone());
+            let result = p.parse(source.clone());
 
             match result {
                 Success(a, s, b) => {
-                    String = s;
+                    source = s;
                     values.push(a);
                     consumed = consumed || b;
                 }
@@ -187,7 +190,7 @@ impl<A> Parser<Vec<A>> for Repeat<A> {
                         return Reject(consumed);
                     }
 
-                    return Success(values, String, consumed);
+                    return Success(values, source, consumed);
                 }
             }
         }
@@ -227,7 +230,7 @@ mod tests_repeat {
 // Example examples
 //
 
-type StringDelim = And<char, (Vec<char>, char)>;
+// type StringDelim = And<char, (Vec<char>, char)>;
 
 pub fn delimited_string() -> impl Parser<(char, (Vec<char>, char))> {
     let sep = '"';
