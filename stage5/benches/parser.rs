@@ -6,7 +6,7 @@ use std::marker::PhantomData;
 
 use bencher::{Bencher, black_box};
 
-use core::Response::Success;
+use response::Response::Success;
 use stage5::*;
 
 fn literal_delimited_string(b: &mut Bencher) {

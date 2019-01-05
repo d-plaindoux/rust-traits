@@ -4,11 +4,11 @@
 // Stage 1: "The Java addict approach"
 //
 
-use core::Response::{Reject, Success};
+use response::Response::{Reject, Success};
 
 //  ------------------------------------------------------------------------------------------------
 
-type Response<A> = core::Response<A, String>;
+type Response<A> = response::Response<A, String>;
 
 //  ------------------------------------------------------------------------------------------------
 

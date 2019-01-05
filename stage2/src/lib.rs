@@ -4,11 +4,11 @@
 // Stage 2: "The Java addict approach but without string clone"
 //
 
-use core::Response::{Reject, Success};
+use response::Response::{Reject, Success};
 
 //  ------------------------------------------------------------------------------------------------
 
-type Response<A> = core::Response<A, usize>;
+type Response<A> = response::Response<A, usize>;
 
 //  ------------------------------------------------------------------------------------------------
 

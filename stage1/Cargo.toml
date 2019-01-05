@@ -6,7 +6,7 @@ edition = "2018"
 
 [dependencies]
 bencher = "0.1"
-core = { version = "0.1.0", path = "../core" }
+response ={ version = "0.1.0", path = "../response" }
 
 [profile.release]
 lto = "fat"

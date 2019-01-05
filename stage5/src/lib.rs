@@ -6,11 +6,11 @@
 
 use std::marker::PhantomData;
 
-use core::Response::{Reject, Success};
+use response::Response::{Reject, Success};
 
 //  ------------------------------------------------------------------------------------------------
 
-type Response<A> = core::Response<A, usize>;
+type Response<A> = response::Response<A, usize>;
 
 //  ------------------------------------------------------------------------------------------------
 // Separate type from behaviors

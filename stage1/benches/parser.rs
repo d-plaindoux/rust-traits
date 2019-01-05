@@ -3,7 +3,7 @@ extern crate bencher;
 extern crate stage1;
 
 use bencher::{black_box, Bencher};
-use core::Response::{Success};
+use response::Response::{Success};
 use stage1::*;
 
 fn literal_delimited_string(b: &mut Bencher) {

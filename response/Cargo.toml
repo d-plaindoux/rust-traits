@@ -1,5 +1,5 @@
 [package]
-name = "core"
+name = "response"
 version = "0.1.0"
 authors = ["Didier Plaindoux <d.plaindoux@free.fr>"]
 edition = "2018"
