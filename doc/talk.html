@@ -23,75 +23,15 @@
     <link rel="stylesheet" href="lib/css/zenburn.css">
 
     <style>
-        .transitions {
-            position: relative;
-        }
-
-        .transition {
-            position: absolute;
-            margin-left: auto;
-            margin-right: auto;
-            left: 0;
-            right: 0;
-        }
-
-        .lower {
-            text-transform: lowercase !important;
-        }
 
         .img-circle {
             border-radius: 50%;
-        }
-
-        .given {
-            left: 5%;
-            width: 90%;
-            text-align: left !important;
-        }
-
-        .highlight {
-            color: white;
-            left: 5%;
-            width: 90%;
-            text-align: middle !important;
-            background-color: #333333;
-            padding: 10px 0em 10px 0em !important;
         }
 
         .keyword {
             color: #FFAA00;
         }
 
-        .type-hole {
-            right: 10px;
-            color: #FF4444;
-            padding: 0px 10px 0px 10px !important;
-        }
-
-        .type-parameters {
-            color: #44FF44;
-        }
-
-        .type-ok {
-            right: 10px;
-            color: #44FF44;
-            padding: 0px 5px 2px 5px !important;
-        }
-
-        .type-rule {
-            position: absolute;
-            right: 10px;
-            color: white;
-            background-color: #664422;
-            padding: 0px 5px 2px 5px !important;
-        }
-
-        .map {
-            z-index: 1;
-            position: absolute;
-            right: -2em;
-            top: -0em;
-        }
     </style>
 
     <!-- Printing and PDF exports -->
@@ -168,19 +108,21 @@
         <!-- ####################### -->
 
         <section>
-            <h3> Je ne parlerai pas de ... </h3>
+            <h3> Je parlerai très peu de ... </h3>
 
             <ul>
-                <li class="fragment" type="none"> Compteur de référence (RC / ARC) </li>
+                <li class="fragment" type="none"> Ownership, Borrowing et de </li>
+                <li class="fragment" type="none"> Partage de Ownership (A)RC </li>
             </ul>
         </section>
 
         <!-- ####################### -->
 
         <section>
-            <h3> Je parlerai de ... </h3>
+            <h3> Je parlerai plus de ... </h3>
 
             <ul>
+                <li class="fragment" type="none"> Type énuméré </li>
                 <li class="fragment" type="none"> Structure de donnée </li>
                 <li class="fragment" type="none"> Spécification de trait </li>
                 <li class="fragment" type="none"> Implementation de trait </li>
@@ -192,7 +134,38 @@
 
         <section>
             <img src="images/Rust.png" width='15%'>
-            <h3> &#x1F489; de rappel </h3>
+            <h3> Petits rappels </h3>
+        </section>
+
+        <!-- ####################### -->
+
+        <section>
+            <h3> Enumeration </h3>
+
+            <pre><code style="font-size:80%" data-trim data-noescape class="Rust">
+                enum Option&lt;A> {
+                    <span class="fragment">Some(A),</span>
+                    <span class="fragment">None</span>
+                }
+            </code></pre>
+
+        </section>
+
+        <!-- ####################### -->
+
+        <section>
+            <h3> Enumeration :: Pattern Matching </h3>
+
+            <pre><code style="font-size:80%" data-trim data-noescape class="Rust">
+                let o = Some(1)
+
+                <span class="fragment">match o {
+                    <span class="fragment">Some(a) => print!("A pour valeur {}", a),</span>
+                    <span class="fragment">None    => print!("Aucune valeur associée")</span>
+                }</span>
+            </code></pre>
+
+            <p class="fragment "> Non extensible </p>
         </section>
 
         <!-- ####################### -->
@@ -203,7 +176,7 @@
             <pre><code style="font-size:80%" data-trim data-noescape class="Rust">
                 struct MyStruct(String);
 
-                let MyStruct(s) = my_struct;               // Pattern matching
+                let MyStruct(s) = my_struct;               // Pattern matching "simple"
             </code></pre>
 
             <pre class="fragment"><code style="font-size:80%" data-trim data-noescape class="Rust">
@@ -235,11 +208,11 @@
         <!-- ####################### -->
 
         <section>
-            <h3> Implementation 1/2 </h3>
+            <h3> Implementation de Trait 1/2 </h3>
 
             <pre><code style="font-size:80%" data-trim data-noescape class="Rust">
                 impl MyTrait for MyStruct {
-                    <span class="fragment">fn new(source: String) -> Self {
+                    <span class="fragment">fn new(source: String) -> Self { // Self &equiv; MyStruct
                         MyStruct { source }
                     }</span>
 
@@ -254,10 +227,10 @@
         <!-- ####################### -->
 
         <section>
-            <h3> Implementation 2/2 </h3>
+            <h3> Implementation de Trait 2/2 </h3>
 
             <pre><code style="font-size:80%" data-trim data-noescape class="Rust">
-                impl MyTrait for String {
+                impl MyTrait for <span class="fragment">String</span> {
                     <span class="fragment">fn new(source: String) -> Self {
                         source
                     }</span>
@@ -273,7 +246,7 @@
         <!-- ####################### -->
 
         <section>
-            <h3> Execution </h3>
+            <h3> Execution 1/2 </h3>
 
             <pre><code style="font-size:80% " data-trim data-noescape class="Rust">
                 fn main() {
@@ -296,10 +269,33 @@
         <!-- ####################### -->
 
         <section>
-            <h3> Un peu de pratique </h3>
+            <h3> Execution 2/2 </h3>
+
+            <pre><code style="font-size:80% " data-trim data-noescape class="Rust">
+                fn main() {
+                    let object = MyStruct { source: "test".to_string() };
+                    let description = object.description(); // "MyStruct(...)"
+                    ...
+                }
+            </code></pre>
+
+            <pre class="fragment"><code style="font-size:80%" data-trim data-noescape class="Rust">
+                fn main() {
+                    let object = "test".to_string();
+                    let description = object.description(); // "test"
+                    ...
+                }
+            </code></pre>
+
+        </section>
+
+        <!-- ####################### -->
+
+        <section>
+            <h3> Passage à la pratique </h3>
 
             <code class="fragment" style="font-size:80%" data-trim data-noescape class="Ocaml">
-                &forall; A &rArr; String &rarr; Response&lt;A>
+                &forall; A &rArr; String &rarr; (Success&lt;A>|Reject)
             </code>
 
             <p class="fragment">Parser <del>combinateur</del> &#x1F612; </p>
@@ -319,8 +315,10 @@
             <h3> Problèmes ouverts </h3>
 
             <ul>
-                <li> Clonage de chaîne et sous chaîne </li>
-                <li> Utilisation de <span class="keyword">Box</span>  </li>
+                <li class="fragment"> Clonage de chaîne et sous chaîne </li>
+                <li class="fragment"> Utilisation de <span class="keyword">Box</span>  </li>
+                <li class="fragment"> Couplage fort structure et comportement </li>
+
             </ul>
         </section>
 
@@ -338,8 +336,9 @@
             <h3> Problèmes ouverts </h3>
 
             <ul>
-                <li> Utilisation de <span class="keyword">Box</span> </li>
-                <li> Impossible de capturer un fragment </li>
+                <li class="fragment"> Utilisation de <span class="keyword">Box</span> </li>
+                <li class="fragment"> Couplage fort structure et comportement </li>
+                <li class="fragment"> Impossible de capturer un fragment </li>
             </ul>
         </section>
 
@@ -354,10 +353,11 @@
         <!-- ####################### -->
 
         <section>
-            <h3> Problème ouvert </h3>
+            <h3> Problèmes ouverts </h3>
 
             <ul>
-                <li> Impossible de capturer un fragment </li>
+                <li class="fragment"> Couplage fort structure et comportement </li>
+                <li class="fragment"> Impossible de capturer un fragment </li>
             </ul>
         </section>
 
@@ -366,7 +366,7 @@
         <section>
             <h3> Stage #4 - Live Coding </h3>
 
-            <p> Découplage type/comportement </p>
+            <p> Découplage structure/comportement </p>
         </section>
 
         <!-- ####################### -->
@@ -375,7 +375,7 @@
             <h3> Problème ouvert </h3>
 
             <ul>
-                <li> Impossible de capturer un fragment </li>
+                <li class="fragment"> Impossible de capturer un fragment </li>
             </ul>
         </section>
 
