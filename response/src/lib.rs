@@ -1,18 +1,18 @@
 pub enum Response<A, S> {
-    Success(A, S, bool),
-    Reject(bool),
+    Success(A, S),
+    Reject,
 }
 
 impl<A, S> Response<A, S> {
     pub fn fold<FS, FR, B>(self, success: FS, reject: FR) -> B
-        where FS: Fn(A, S, bool) -> B,
-              FR: Fn(bool) -> B
+        where FS: Fn(A, S) -> B,
+              FR: Fn() -> B
     {
         use crate::Response::{Success, Reject};
 
         match self {
-            Success(a, s, b) => success(a, s, b),
-            Reject(b) => reject(b)
+            Success(a, s) => success(a, s),
+            Reject => reject()
         }
     }
 }
@@ -25,16 +25,16 @@ mod tests_response {
 
     #[test]
     fn it_fold_a_success() {
-        let v: Response<u32> = Success(1, (), true);
+        let v: Response<u32> = Success(1, ());
 
-        assert_eq!(v.fold(|_, _, _| true, |_| false), true);
+        assert_eq!(v.fold(|_, _| true, || false), true);
     }
 
     #[test]
     fn it_fold_a_reject() {
-        let v: Response<u32> = Reject(true);
+        let v: Response<u32> = Reject;
 
-        assert_eq!(v.fold(|_, _, _| true, |_| false), false);
+        assert_eq!(v.fold(|_, _| true, || false), false);
     }
 }
 

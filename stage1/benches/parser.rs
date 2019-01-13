@@ -20,7 +20,7 @@ fn parse<E, A>(p: E, b: &mut Bencher, buffer: String)
 
     b.iter(|| {
         match p.parse(buffer.clone()) {
-            Success(_,ref s,_) if { s.is_empty() } => (),
+            Success(_,ref s) if { s.is_empty() } => (),
             _ => panic!("unable parse stream"),
         }
     });

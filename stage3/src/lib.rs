@@ -1,7 +1,7 @@
 #![allow(dead_code)]
 
 //
-//   Stage 3: "No more Box"
+//   Stage 3: "Eliminate Boxes"
 //
 
 use std::marker::PhantomData;
@@ -25,17 +25,15 @@ pub trait Parser<A> {
 
 impl<E> Parser<char> for E where E: Fn(char) -> bool {
     fn parse(&self, s: &[u8], o: usize) -> Response<char> {
-        if o >= s.len() {
-            return Reject(false);
+        if o < s.len() {
+            let c = s[o] as char; // Simplified approach
+
+            if self(c) {
+                return Success(c, o + 1);
+            }
         }
 
-        let c = s[o] as char; // Simplified approach
-
-        if self(c) {
-            return Success(c, o + 1, true);
-        }
-
-        return Reject(false);
+        Reject
     }
 }
 
@@ -62,42 +60,42 @@ mod tests_satisfy {
     fn it_parse_any_character() {
         let response = any().parse(b"a", 0);
 
-        assert_eq!(response.fold(|v, _, _| v == 'a', |_| false), true);
+        assert_eq!(response.fold(|v, _| v == 'a', || false), true);
     }
 
     #[test]
     fn it_cannot_parse_any_character() {
         let response = any().parse(b"", 0);
 
-        assert_eq!(response.fold(|_, _, _| false, |_| true), true);
+        assert_eq!(response.fold(|_, _| false, || true), true);
     }
 
     #[test]
     fn it_parse_a_specific_character() {
         let response = char('a').parse(b"a", 0);
 
-        assert_eq!(response.fold(|v, _, _| v == 'a', |_| false), true);
+        assert_eq!(response.fold(|v, _| v == 'a', || false), true);
     }
 
     #[test]
     fn it_cannot_parse_a_specific_character() {
         let response = char('a').parse(b"b", 0);
 
-        assert_eq!(response.fold(|_, _, _| false, |_| true), true);
+        assert_eq!(response.fold(|_, _| false, || true), true);
     }
 
     #[test]
     fn it_parse_another_specific_character() {
         let response = not('b').parse(b"a", 0);
 
-        assert_eq!(response.fold(|v, _, _| v == 'a', |_| false), true);
+        assert_eq!(response.fold(|v, _| v == 'a', || false), true);
     }
 
     #[test]
     fn it_cannot_parse_another_specific_character() {
         let response = not('a').parse(b"a", 0);
 
-        assert_eq!(response.fold(|_, _, _| false, |_| true), true);
+        assert_eq!(response.fold(|_, _| false, || true), true);
     }
 }
 
@@ -122,13 +120,13 @@ impl<L, R, A, B> Parser<(A, B)> for And<L, R, A, B>
         let And(left, right, _, _) = self;
 
         match left.parse(s, o) {
-            Success(v1, s1, b1) => {
+            Success(v1, s1) => {
                 match right.parse(s, s1) {
-                    Success(v2, s2, b2) => Success((v1, v2), s2, b1 || b2),
-                    Reject(b2) => Reject(b1 || b2)
+                    Success(v2, s2) => Success((v1, v2), s2),
+                    Reject => Reject
                 }
             }
-            Reject(b1) => Reject(b1)
+            Reject => Reject
         }
     }
 }
@@ -145,14 +143,14 @@ mod tests_and {
     fn it_parse_two_characters() {
         let response = and!(char('a'), char('b')).parse(b"ab", 0);
 
-        assert_eq!(response.fold(|v, _, _| v == ('a', 'b'), |_| false), true);
+        assert_eq!(response.fold(|v, _| v == ('a', 'b'), || false), true);
     }
 
     #[test]
     fn it_cannot_parse_two_characters() {
         let response = and!(char('a'), char('b')).parse(b"", 0);
 
-        assert_eq!(response.fold(|_, _, _| false, |_| true), true);
+        assert_eq!(response.fold(|_, _| false, || true), true);
     }
 }
 
@@ -181,23 +179,21 @@ impl<P, A> Parser<Vec<A>> for Repeat<P, A>
 
         let mut values: Vec<A> = Vec::with_capacity(if *opt { 0 } else { 1 });
         let mut offset = o;
-        let mut consumed = false;
 
         loop {
             let result = p.parse(s, offset);
 
             match result {
-                Success(a, s, b) => {
+                Success(a, s) => {
                     offset = s;
                     values.push(a);
-                    consumed = consumed || b;
                 }
                 _ => {
                     if !*opt & &values.is_empty() {
-                        return Reject(consumed);
+                        return Reject;
                     }
 
-                    return Success(values, offset, consumed);
+                    return Success(values, offset);
                 }
             }
         }
@@ -216,21 +212,21 @@ mod tests_repeat {
     fn it_parse_three_characters() {
         let response = rep!(char('a')).parse(b"aaab", 0);
 
-        assert_eq!(response.fold(|v, _, _| v.len() == 3, |_| false), true);
+        assert_eq!(response.fold(|v, _| v.len() == 3, || false), true);
     }
 
     #[test]
     fn it_cannot_parse_a_character() {
         let response = rep!(char('a')).parse(b"b", 0);
 
-        assert_eq!(response.fold(|_, _, _| false, |_| true), true);
+        assert_eq!(response.fold(|_, _| false, || true), true);
     }
 
     #[test]
     fn it_parse_nothing() {
         let response = optrep!(char('a')).parse(b"b", 0);
 
-        assert_eq!(response.fold(|v, _, _| v.is_empty(), |_| false), true);
+        assert_eq!(response.fold(|v, _| v.is_empty(), || false), true);
     }
 }
 
@@ -260,13 +256,13 @@ mod tests_delimited_string {
     fn it_parse_a_three_characters_string() {
         let response = delimited_string().parse(b"\"aaa\"", 0);
 
-        assert_eq!(response.fold(|(_, (v, _)), _, _| v.len() == 3, |_| false), true);
+        assert_eq!(response.fold(|(_, (v, _)), _| v.len() == 3, || false), true);
     }
 
     #[test]
     fn it_parse_an_empty_string() {
         let response = delimited_string().parse(b"\"\"", 0);
 
-        assert_eq!(response.fold(|(_, (v, _)), _, _| v.len() == 0, |_| false), true);
+        assert_eq!(response.fold(|(_, (v, _)), _| v.len() == 0, || false), true);
     }
 }

@@ -23,7 +23,7 @@ fn parse<E, A>(p: E, b: &mut Bencher, buffer: &[u8])
         let buffer = black_box(buffer);
 
         match p.parse(buffer, 0) {
-            Success(_, s, _) if { s == buffer.len() } => (),
+            Success(_, s) if { s == buffer.len() } => (),
             _ => panic!("unable parse stream"),
         }
     });
