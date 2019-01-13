@@ -17,7 +17,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 
     <link rel="stylesheet" href="css/reveal.css">
-    <link rel="stylesheet" href="css/theme/beige.css" id="theme">
+    <link rel="stylesheet" href="css/theme/night.css" id="theme">
 
     <!-- Code syntax highlighting -->
     <link rel="stylesheet" href="lib/css/zenburn.css">
@@ -30,6 +30,26 @@
 
         .keyword {
             color: #FFAA00;
+        }
+
+        .remark {
+            color: white;
+            text-align: center !important;
+            background-color: #aa423f;
+            padding: 10px 0em 10px 0em !important;
+            Box-shadow: 5px 5px 5px 0px rgba(0, 0, 0, 0.4);
+        }
+
+        .pages {
+            position: absolute;
+            display: table;
+            left: 5%;
+            top: 5%;
+            width: 90%;
+            height: 90%;
+            color: white;
+            background-color: rgba(18, 30, 46, 0.60);
+            Box-shadow: 5px 5px 5px 0px rgba(0, 0, 0, 0.4);
         }
 
     </style>
@@ -45,7 +65,7 @@
 </head>
 
 <body>
-<div class="reveal">
+<div class="reveal pages">
 
     <div class="slides">
 
@@ -63,12 +83,10 @@
         <section>
             <table>
                 <tr>
-                    <td align="center"><b>Freelance</b></td>
-                    <td align="center"><b>Computer scientist</b></td>
+                    <td align="center"><b>Freelance</b> + <b>OSS</b></td>
                 </tr>
                 <tr>
-                    <td width="50%" align="center"><img class="plain" src="images/fungus.png" width='45%'/></td>
-                    <td width="50%" align="center"><span style="font-size:500%">&lambda;</span></td>
+                    <td align="center"><b>Computer scientist</b></td>
                 </tr>
             </table>
         </section>
@@ -76,7 +94,21 @@
         <!-- ####################### -->
 
         <section>
-            <h3><img src="images/Rust.png" width='5%'> / Système </h3>
+            <h4> "Language Addict" </h4>
+
+            <ul>
+                <li class="fragment"> Prolog, OCaml, C/C++, Perl</li>
+                <li class="fragment"> Java, Javascript, Python</li>
+                <li class="fragment"> Scala, Haskell, Go</li>
+                <li class="fragment"> Swift, Kotlin, Rust</li>
+                <li class="fragment"> et les miens !</li>
+            </ul>
+        </section>
+
+        <!-- ####################### -->
+
+        <section>
+            <h3><img src="images/Rust.png" width='15%'> </h3>
             <ul>
                 <li type="none" class="fragment"> “zero cost abstractions”</li>
                 <li type="none" class="fragment"> Pas de ramasse miette</li>
@@ -87,7 +119,7 @@
         <!-- ####################### -->
 
         <section>
-            <h3><img src="images/Rust.png" align="middle" width='5%'> / Fonctionnel </h3>
+            <h3><img src="images/Rust.png" align="middle" width='15%'></h3>
             <ul>
                 <li type="none" class="fragment"> Fonction d'ordre supérieur</li>
                 <li type="none" class="fragment"> Pattern Matching</li>
@@ -98,35 +130,23 @@
         <!-- ####################### -->
 
         <section>
-            <h3><img src="images/Rust.png" width='5%'> / Modularité </h3>
+            <h3><img src="images/Rust.png" width='15%'></h3>
             <ul>
-                <li type="none" class="fragment"> Concept de trait </li>
-                <li type="none" class="fragment"> Polymorphisme ad-hoc </li>
-                <li type="none" class="fragment"> "Typeclasses" à la Haskell </li>
+                <li type="none" class="fragment"> Concept de trait</li>
+                <li type="none" class="fragment"> Polymorphisme ad-hoc</li>
+                <li type="none" class="fragment"> "Typeclasses" à la Haskell</li>
             </ul>
         </section>
         <!-- ####################### -->
 
         <section>
-            <h3> Je parlerai très peu de ... </h3>
+            <h3> Principes abordés </h3>
 
-            <ul>
-                <li class="fragment" type="none"> Ownership, Borrowing et de </li>
-                <li class="fragment" type="none"> Partage de Ownership (A)RC </li>
-            </ul>
-        </section>
-
-        <!-- ####################### -->
-
-        <section>
-            <h3> Je parlerai plus de ... </h3>
-
-            <ul>
-                <li class="fragment" type="none"> Type énuméré </li>
-                <li class="fragment" type="none"> Structure de donnée </li>
-                <li class="fragment" type="none"> Spécification de trait </li>
-                <li class="fragment" type="none"> Implementation de trait </li>
-            </ul>
+            <p class="fragment"> Type énuméré & Structure</p>
+            <p class="fragment"> Spécification de trait</p>
+            <p class="fragment"> Implementation de trait</p>
+            <br>
+            <p class="fragment remark"> Ownership, Borrowing et Lifetime</p>
 
         </section>
 
@@ -154,7 +174,7 @@
         <!-- ####################### -->
 
         <section>
-            <h3> Enumeration :: Pattern Matching </h3>
+            <h3> Pattern Matching </h3>
 
             <pre><code style="font-size:80%" data-trim data-noescape class="Rust">
                 let o = Some(1)
@@ -298,7 +318,9 @@
                 &forall; A &rArr; String &rarr; (Success&lt;A>|Reject)
             </code>
 
-            <p class="fragment">Parser <del>combinateur</del> &#x1F612; </p>
+            <p class="fragment">Parser
+                <del>combinateur</del> &#x1F612;
+            </p>
         </section>
 
         <!-- ####################### -->
@@ -315,9 +337,11 @@
             <h3> Problèmes ouverts </h3>
 
             <ul>
-                <li class="fragment"> Clonage de chaîne et sous chaîne </li>
-                <li class="fragment"> Utilisation de <span class="keyword">Box</span>  </li>
-                <li class="fragment"> Couplage fort structure et comportement </li>
+                <li class="fragment"> Clonage de chaîne et sous chaîne</li>
+                <li class="fragment" type="none"> &#x21b3; ownership</li>
+
+                <li class="fragment"> Utilisation de <span class="keyword">Box</span></li>
+                <li class="fragment"> Couplage fort structure et comportement</li>
 
             </ul>
         </section>
@@ -336,9 +360,10 @@
             <h3> Problèmes ouverts </h3>
 
             <ul>
-                <li class="fragment"> Utilisation de <span class="keyword">Box</span> </li>
-                <li class="fragment"> Couplage fort structure et comportement </li>
-                <li class="fragment"> Impossible de capturer un fragment </li>
+                <li class="fragment"> Utilisation de <span class="keyword">Box</span></li>
+                <li class="fragment" type="none"> &#x21b3; Heap vs. Pile</li>
+                <li class="fragment"> Couplage fort structure et comportement</li>
+                <li class="fragment"> Impossible de capturer un fragment</li>
             </ul>
         </section>
 
@@ -356,8 +381,8 @@
             <h3> Problèmes ouverts </h3>
 
             <ul>
-                <li class="fragment"> Couplage fort structure et comportement </li>
-                <li class="fragment"> Impossible de capturer un fragment </li>
+                <li class="fragment"> Couplage fort structure et comportement</li>
+                <li class="fragment"> Impossible de capturer un fragment</li>
             </ul>
         </section>
 
@@ -375,7 +400,8 @@
             <h3> Problème ouvert </h3>
 
             <ul>
-                <li class="fragment"> Impossible de capturer un fragment </li>
+                <li class="fragment"> Impossible de capturer un fragment</li>
+                <li class="fragment" type="none"> &#x21b3; Couplage faible</li>
             </ul>
         </section>
 
@@ -394,7 +420,8 @@
 
             <table style="font-size: 80%">
                 <tr class="fragment">
-                    <td> #5 </td><td style="background: #efefaf"> 77 M/s </td>
+                    <td> #5</td>
+                    <td style="background: #27313d"> 77 M/s</td>
                     <td width="50%">
                         <div class="w3-border">
                             <div class="w3-grey" style="height:24px;width:100%"></div>
@@ -402,7 +429,8 @@
                     </td>
                 </tr>
                 <tr class="fragment">
-                    <td> #4 </td><td style="background: #efefaf"> 77 M/s </td>
+                    <td> #4</td>
+                    <td style="background: #27313d"> 77 M/s</td>
                     <td width="50%">
                         <div class="w3-border">
                             <div class="w3-grey" style="height:24px;width:100%"></div>
@@ -410,7 +438,8 @@
                     </td>
                 </tr>
                 <tr class="fragment">
-                    <td> #3 </td><td style="background: #efefaf"> 77 M/s </td>
+                    <td> #3</td>
+                    <td style="background: #27313d"> 77 M/s</td>
                     <td width="50%">
                         <div class="w3-border">
                             <div class="w3-grey" style="height:24px;width:100%"></div>
@@ -418,7 +447,8 @@
                     </td>
                 </tr>
                 <tr class="fragment">
-                    <td> #2 </td><td style="background: #efefaf"> 51 M/s </td>
+                    <td> #2</td>
+                    <td style="background: #27313d"> 51 M/s</td>
                     <td width="60%">
                         <div class="w3-border">
                             <div class="w3-grey" style="height:24px;width:65%"></div>
@@ -426,7 +456,8 @@
                     </td>
                 </tr>
                 <tr class="fragment">
-                    <td> #1 </td><td style="background: #efefaf"> 3 M/s </td>
+                    <td> #1</td>
+                    <td style="background: #27313d"> 3 M/s</td>
                     <td width="50%">
                         <div class="w3-border">
                             <div class="w3-grey" style="height:24px;width:4%"></div>

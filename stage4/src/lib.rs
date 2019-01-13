@@ -266,13 +266,13 @@ mod tests_delimited_string {
     fn it_parse_a_three_characters_string() {
         let response = delimited_string().parse(b"\"aaa\"", 0);
 
-        assert_eq!(response.fold(|(_, (v, _)), _| v.len() == 3, || false), true);
+        assert_eq!(response.fold(|(_,(v,_)), _| v.len() == 3, || false), true);
     }
 
     #[test]
     fn it_parse_an_empty_string() {
         let response = delimited_string().parse(b"\"\"", 0);
 
-        assert_eq!(response.fold(|(_, (v, _)), _| v.len() == 0, || false), true);
+        assert_eq!(response.fold(|(_,(v,_)), _| v.len() == 0, || false), true);
     }
 }

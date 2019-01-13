@@ -39,15 +39,15 @@ impl Parser<char> for Satisfy {
     }
 }
 
-fn any() -> Satisfy {
+fn any() -> impl Parser<char> {
     Satisfy(Box::new(|_| true))
 }
 
-fn char(c: char) -> Satisfy {
+fn char(c: char) -> impl Parser<char>  {
     Satisfy(Box::new(move |v| v == c))
 }
 
-fn not(c: char) -> Satisfy {
+fn not(c: char) -> impl Parser<char>  {
     Satisfy(Box::new(move |v| v != c))
 }
 

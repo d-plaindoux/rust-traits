@@ -23,12 +23,15 @@ pub trait Parser<A> {
 // The Satisfy parser
 //
 
-impl<E> Parser<char> for E where E: Fn(char) -> bool {
+struct Satisfy<E>(E) where E: Fn(char) -> bool;
+
+impl<E> Parser<char> for Satisfy<E> where E: Fn(char) -> bool {
     fn parse(&self, s: &[u8], o: usize) -> Response<char> {
         if o < s.len() {
+            let Satisfy(f) = self;
             let c = s[o] as char; // Simplified approach
 
-            if self(c) {
+            if f(c) {
                 return Success(c, o + 1);
             }
         }
@@ -37,16 +40,16 @@ impl<E> Parser<char> for E where E: Fn(char) -> bool {
     }
 }
 
-fn any() -> impl Fn(char) -> bool {
-    |_| true
+fn any() -> impl Parser<char> {
+    Satisfy(|_| true)
 }
 
-fn char(c: char) -> impl Fn(char) -> bool {
-    move |v| v == c
+fn char(c: char) -> impl Parser<char> {
+    Satisfy(move |v| v == c)
 }
 
-fn not(c: char) -> impl Fn(char) -> bool {
-    move |v| v != c
+fn not(c: char) -> impl Parser<char> {
+    Satisfy(move |v| v != c)
 }
 
 #[cfg(test)]
