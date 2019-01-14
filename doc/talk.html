@@ -236,7 +236,7 @@
                         MyStruct { source }
                     }</span>
 
-                    <span class="fragment">fn description(&self) -> bool {
+                    <span class="fragment">fn description(&self) -> String {
                         "MyTrait(...)".to_string()
                     }</span>
                 }
@@ -250,13 +250,13 @@
             <h3> Implementation de Trait 2/2 </h3>
 
             <pre><code style="font-size:80%" data-trim data-noescape class="Rust">
-                impl MyTrait for <span class="fragment">String</span> {
-                    <span class="fragment">fn new(source: String) -> Self {
+                impl MyTrait for <span class="fragment" data-fragment-index="1">String</span> {
+                    <span class="fragment" data-fragment-index="2">fn new(source: String) -> Self {
                         source
                     }</span>
 
-                    <span class="fragment">fn description(&self) -> bool {
-                        self.clone() // Borrowing
+                    <span class="fragment" data-fragment-index="3">fn description(&self) -> String {
+                        self<span class="fragment" data-fragment-index="4">.clone()</span> // Borrowing <span class="fragment" data-fragment-index="4">&rArr; Ownership</span>
                     }</span>
                 }
             </code></pre>
@@ -326,7 +326,7 @@
         <!-- ####################### -->
 
         <section>
-            <h3> Stage #1 - Live Coding </h3>
+            <h3> Stage #1 - Code Review </h3>
 
             <p> L'approche naïve </p>
         </section>
@@ -337,8 +337,8 @@
             <h3> Problèmes ouverts </h3>
 
             <ul>
-                <li class="fragment"> Clonage de chaîne et sous chaîne</li>
-                <li class="fragment" type="none"> &#x21b3; ownership</li>
+                <li class="fragment"> Clonage de chaîne </li>
+                <li class="fragment" type="none"> &#x21b3; Ownership à l'exécution i.e. <span class="keyword">parse</span> </li>
 
                 <li class="fragment"> Utilisation de <span class="keyword">Box</span></li>
                 <li class="fragment"> Couplage fort structure et comportement</li>
@@ -349,9 +349,11 @@
         <!-- ####################### -->
 
         <section>
-            <h3> Stage #2 - Live Coding </h3>
+            <h3> Stage #2 - Code Review </h3>
 
             <p> Zéro copie ! </p>
+            <br>
+            <p style="font-size: 80%" class="remark fragment"> Ownership &rArr; Borrowing  </p>
         </section>
 
         <!-- ####################### -->
@@ -361,7 +363,7 @@
 
             <ul>
                 <li class="fragment"> Utilisation de <span class="keyword">Box</span></li>
-                <li class="fragment" type="none"> &#x21b3; Heap vs. Pile</li>
+
                 <li class="fragment"> Couplage fort structure et comportement</li>
                 <li class="fragment"> Impossible de capturer un fragment</li>
             </ul>
@@ -372,7 +374,9 @@
         <section>
             <h3> Stage #3 - Live Coding </h3>
 
-            <p> Polymorphisme paramétrique </p>
+            <p> Elimination des <span class="keyword">Box</span> </p>
+            <br>
+            <p style="font-size: 80%" class="remark fragment"> Polymorphisme Paramétrique </p>
         </section>
 
         <!-- ####################### -->
@@ -392,6 +396,8 @@
             <h3> Stage #4 - Live Coding </h3>
 
             <p> Découplage structure/comportement </p>
+            <br>
+            <p style="font-size: 80%" class="remark fragment"> Multiplication des Traits </p>
         </section>
 
         <!-- ####################### -->
@@ -401,7 +407,7 @@
 
             <ul>
                 <li class="fragment"> Impossible de capturer un fragment</li>
-                <li class="fragment" type="none"> &#x21b3; Couplage faible</li>
+                <li class="fragment" type="none"> &#x21b3; Par de Lifetime à l'exécution i.e. <tt>parse</tt> </li>
             </ul>
         </section>
 
@@ -410,7 +416,9 @@
         <section>
             <h3> Stage #5 - Live Coding </h3>
 
-            <p> Lifetime </p>
+            <p> Permettre le Capture de fragment </p>
+            <br>
+            <p style="font-size: 80%" class="remark fragment"> Borrowing avec Lifetime explicite </p>
         </section>
 
         <!-- ####################### -->
@@ -437,7 +445,7 @@
                         </div>
                     </td>
                 </tr>
-                <tr class="fragment">
+                <tr class="fragment" data->
                     <td> #3</td>
                     <td style="background: #27313d"> 77 M/s</td>
                     <td width="50%">
