@@ -318,9 +318,7 @@
                 &forall; A &rArr; String &rarr; (Success&lt;A>|Reject)
             </code>
 
-            <p class="fragment">Parser
-                <del>combinateur</del> &#x1F612;
-            </p>
+            <p class="fragment">REX Parser <del>combinateur</del> &#x1F612;</p>
         </section>
 
         <!-- ####################### -->
@@ -407,7 +405,7 @@
 
             <ul>
                 <li class="fragment"> Impossible de capturer un fragment</li>
-                <li class="fragment" type="none"> &#x21b3; Par de Lifetime à l'exécution i.e. <tt>parse</tt> </li>
+                <li class="fragment" type="none"> &#x21b3; Pas de Lifetime à l'exécution i.e. <tt>parse</tt> </li>
             </ul>
         </section>
 
@@ -424,53 +422,78 @@
         <!-- ####################### -->
 
         <section>
-            <h3> Basic benchmark </h3>
+            <h3> Stage #6 - Live Coding </h3>
+
+            <p> Opérer la capture de fragment </p>
+            <br>
+            <p style="font-size: 80%" class="remark fragment"> "Expression Problem" partiel</p>
+        </section>
+
+        <!-- ####################### -->
+
+        <section>
+            <h3> Basic benchmarks </h3>
 
             <table style="font-size: 80%">
                 <tr class="fragment">
-                    <td> #5</td>
-                    <td style="background: #27313d"> 77 M/s</td>
-                    <td width="50%">
+                    <td> #1</td>
+                    <td style="background: #27313d"> 3 M/s</td>
+                    <td width="30%">
                         <div class="w3-border">
-                            <div class="w3-grey" style="height:24px;width:100%"></div>
+                            <div class="w3-grey" style="height:24px;width:1%"></div>
                         </div>
                     </td>
-                </tr>
-                <tr class="fragment">
-                    <td> #4</td>
-                    <td style="background: #27313d"> 77 M/s</td>
-                    <td width="50%">
-                        <div class="w3-border">
-                            <div class="w3-grey" style="height:24px;width:100%"></div>
-                        </div>
-                    </td>
-                </tr>
-                <tr class="fragment" data->
-                    <td> #3</td>
-                    <td style="background: #27313d"> 77 M/s</td>
-                    <td width="50%">
-                        <div class="w3-border">
-                            <div class="w3-grey" style="height:24px;width:100%"></div>
-                        </div>
-                    </td>
+                    <td style="font-size: 80%">Box | Ownership</td>
                 </tr>
                 <tr class="fragment">
                     <td> #2</td>
                     <td style="background: #27313d"> 51 M/s</td>
-                    <td width="60%">
-                        <div class="w3-border">
-                            <div class="w3-grey" style="height:24px;width:65%"></div>
-                        </div>
-                    </td>
-                </tr>
-                <tr class="fragment">
-                    <td> #1</td>
-                    <td style="background: #27313d"> 3 M/s</td>
-                    <td width="50%">
+                    <td width="30%">
                         <div class="w3-border">
                             <div class="w3-grey" style="height:24px;width:4%"></div>
                         </div>
                     </td>
+                    <td style="font-size: 80%">Box | Borrowing</td>
+                </tr>
+                <tr class="fragment" data->
+                    <td> #3</td>
+                    <td style="background: #27313d"> 77 M/s</td>
+                    <td width="30%">
+                        <div class="w3-border">
+                            <div class="w3-grey" style="height:24px;width:6%"></div>
+                        </div>
+                    </td>
+                    <td style="font-size: 80%">No Box | Borrowing</td>
+                </tr>
+                <tr class="fragment">
+                    <td> #4</td>
+                    <td style="background: #27313d"> 77 M/s</td>
+                    <td width="30%">
+                        <div class="w3-border">
+                            <div class="w3-grey" style="height:24px;width:6%"></div>
+                        </div>
+                    </td>
+                    <td style="font-size: 80%">No Box | Borrowing</td>
+                </tr>
+                <tr class="fragment">
+                    <td> #5</td>
+                    <td style="background: #27313d"> 77 M/s</td>
+                    <td width="30%">
+                        <div class="w3-border">
+                            <div class="w3-grey" style="height:24px;width:6%"></div>
+                        </div>
+                    </td>
+                    <td style="font-size: 80%">No Box | Borrowing + Lifetime</td>
+                </tr>
+                <tr class="fragment">
+                    <td> #6 </td>
+                    <td style="background: #27313d"> 1260 M/s</td>
+                    <td width="30%">
+                        <div class="w3-border">
+                            <div class="w3-grey" style="height:24px;width:100%"></div>
+                        </div>
+                    </td>
+                    <td style="font-size: 80%">No Box | Borrowing + Lifetime</td>
                 </tr>
             </table>
 
@@ -481,7 +504,7 @@
         <section>
             <h3> D'autres types à explorer </h3>
 
-            <img src="images/types.png" width="30%">
+            <img src="images/types.png" width="70%">
         </section>
 
         <!-- ####################### -->

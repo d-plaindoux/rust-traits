@@ -1,7 +1,7 @@
 #![allow(dead_code)]
 
 //
-//   Stage 5: "Lifetime"
+//   Stage 6: "Expression Problem"
 //
 
 use std::marker::PhantomData;
@@ -19,6 +19,10 @@ pub trait Parser<A> {}
 
 pub trait Executable<'a, A> {
     fn parse(&self, s: &'a [u8], o: usize) -> Response<A>;
+}
+
+pub trait Checker<'a> {
+    fn check(&self, s: &'a [u8], o: usize) -> Response<()>;
 }
 
 // ------------------------------------------------------------------------------------------------
@@ -41,6 +45,16 @@ impl<'a, E> Executable<'a, char> for E where E: Fn(char) -> bool {
         Reject
     }
 }
+
+impl<'a, E> Checker<'a> for E where E: Fn(char) -> bool {
+    fn check(&self, s: &'a [u8], o: usize) -> Response<()> {
+        match self.parse(s, o) {
+            Success(_,s) => Success((), s),
+            Reject => Reject
+        }
+    }
+}
+
 
 fn any() -> impl Fn(char) -> bool {
     |_| true
@@ -141,6 +155,25 @@ impl<'a, L, R, A, B> Executable<'a, (A, B)> for And<L, R, A, B>
     }
 }
 
+impl<'a, L, R, A, B> Checker<'a> for And<L, R, A, B>
+    where L: Checker<'a,> + Parser<A>,
+          R: Checker<'a> + Parser<B>
+{
+    fn check(&self, s: &'a [u8], o: usize) -> Response<()> {
+        let And(left, right, _, _) = self;
+
+        match left.check(s, o) {
+            Success(_, s1) => {
+                match right.check(s, s1) {
+                    Success(_, s2) => Success((), s2),
+                    Reject => Reject
+                }
+            }
+            Reject => Reject
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests_and {
     use std::marker::PhantomData;
@@ -214,6 +247,33 @@ impl<'a, P, A> Executable<'a, Vec<A>> for Repeat<P, A>
     }
 }
 
+impl<'a, P, A> Checker<'a> for Repeat<P, A>
+    where P: Checker<'a> + Parser<A>
+{
+    fn check(&self, s: &'a [u8], o: usize) -> Response<()> {
+        let Repeat(opt, p, _) = self;
+
+        let mut offset = o;
+
+        loop {
+            let result = p.check(s, offset);
+
+            match result {
+                Success(_, s) => {
+                    offset = s;
+                }
+                _ => {
+                    if !*opt & ((offset - 0) == 0) {
+                        return Reject;
+                    }
+
+                    return Success((), offset);
+                }
+            }
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests_repeat {
     use std::marker::PhantomData;
@@ -249,12 +309,24 @@ mod tests_repeat {
 // Example examples
 //
 
-type Delimited = (char, (Vec<char>, char));
+pub struct Delimited;
 
-pub fn delimited_string<'a>() -> impl Executable<'a, Delimited> + Parser<Delimited> {
-    let sep = '"';
+impl<'a> Parser<(&'a [u8], usize, usize)> for Delimited {}
 
-    and!(char(sep), and!(optrep!(not(sep)), char(sep)))
+impl<'a> Executable<'a, (&'a [u8], usize, usize)> for Delimited {
+    fn parse(&self, s: &'a [u8], o: usize) -> Response<(&'a [u8], usize, usize)> {
+        let sep = '"';
+        let response = and!(char(sep), and!(optrep!(not(sep)), char(sep))).check(s, o);
+
+        match response {
+            Success(_, no) => Success((s, o + 1, no - 1), no),
+            Reject => Reject
+        }
+    }
+}
+
+pub fn delimited_string() -> Delimited {
+    Delimited
 }
 
 #[cfg(test)]
@@ -266,13 +338,13 @@ mod tests_delimited_string {
     fn it_parse_a_three_characters_string() {
         let response = delimited_string().parse(b"\"aaa\"", 0);
 
-        assert_eq!(response.fold(|(_, (v, _)), _| v.len() == 3, || false), true);
+        assert_eq!(response.fold(|(_, s, e), _| (e - s) == 3, || false), true);
     }
 
     #[test]
     fn it_parse_an_empty_string() {
         let response = delimited_string().parse(b"\"\"", 0);
 
-        assert_eq!(response.fold(|(_, (v, _)), _| v.len() == 0, || false), true);
+        assert_eq!(response.fold(|(_, s, e), _| (e - s) == 0, || false), true);
     }
 }

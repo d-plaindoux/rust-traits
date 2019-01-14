@@ -1,0 +1,13 @@
+[package]
+name = "stage6"
+version = "0.1.0"
+authors = ["Didier Plaindoux <d.plaindoux@free.fr>"]
+edition = "2018"
+
+[dependencies]
+bencher = "0.1"
+response ={ version = "0.1.0", path = "../response" }
+
+[[bench]]
+name = "parser"
+harness = false
