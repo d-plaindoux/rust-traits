@@ -1,6 +1,7 @@
 [workspace]
 
 members = [
+    "example",
     "response",
     "stage1",
     "stage2",

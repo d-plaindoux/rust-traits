@@ -17,7 +17,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 
     <link rel="stylesheet" href="css/reveal.css">
-    <link rel="stylesheet" href="css/theme/night.css" id="theme">
+    <link rel="stylesheet" href="css/theme/league.css" id="theme">
 
     <!-- Code syntax highlighting -->
     <link rel="stylesheet" href="lib/css/zenburn.css">
@@ -35,20 +35,8 @@
         .remark {
             color: white;
             text-align: center !important;
-            background-color: #aa423f;
+            background-color: #42663f;
             padding: 10px 0em 10px 0em !important;
-            Box-shadow: 5px 5px 5px 0px rgba(0, 0, 0, 0.4);
-        }
-
-        .pages {
-            position: absolute;
-            display: table;
-            left: 5%;
-            top: 5%;
-            width: 90%;
-            height: 90%;
-            color: white;
-            background-color: rgba(18, 30, 46, 0.60);
             Box-shadow: 5px 5px 5px 0px rgba(0, 0, 0, 0.4);
         }
 
@@ -72,8 +60,8 @@
         <!-- ####################### -->
 
         <section>
-            <h3> Programmation par Traits <br><span class="fragment">sous l'influence de la gestion mémoire</span></h3>
-            <br> Montpellier Rust Meetup </br>
+            <h3> Programmation par Traits <br> sous l'influence de la gestion mémoire </h3>
+            <br> BreizhCamp 2019 </br>
             <p><img style="vertical-align: middle;" class="plain img-circle" width="6%" src="images/photo.jpg">
                 &nbsp; <a style="font-size:30px" href="http://twitter.com/dplaindoux">@dplaindoux</a></p>
         </section>
@@ -81,20 +69,7 @@
         <!-- ####################### -->
 
         <section>
-            <table>
-                <tr>
-                    <td align="center"><b>Freelance</b> + <b>OSS</b></td>
-                </tr>
-                <tr>
-                    <td align="center"><b>Computer scientist</b></td>
-                </tr>
-            </table>
-        </section>
-
-        <!-- ####################### -->
-
-        <section>
-            <h3><img src="images/Rust.png" width='15%'> </h3>
+            <h3><img src="images/Rust.png" width='15%'></h3>
             <ul>
                 <li type="none" class="fragment"> “zero cost abstractions”</li>
                 <li type="none" class="fragment"> Pas de ramasse miette</li>
@@ -123,6 +98,13 @@
                 <li type="none" class="fragment"> "Typeclasses" à la Haskell</li>
             </ul>
         </section>
+
+        <!-- ####################### -->
+
+        <section>
+            <img src="images/wadler.png">
+        </section>
+
         <!-- ####################### -->
 
         <section>
@@ -189,7 +171,7 @@
             <pre class="fragment"><code style="font-size:80%" data-trim data-noescape class="Rust">
                 struct MyStruct {
                     source: String
-                };
+                }
 
                 let MyStruct { source } = my_struct;       // Pattern matching
                 let source = my_struct.source              // Accès direct par nom
@@ -200,7 +182,7 @@
         <!-- ####################### -->
 
         <section>
-            <h3> Trait </h3>
+            <h3> Définition Trait </h3>
 
             <pre><code style="font-size:80%" data-trim data-noescape class="Rust">
                 trait MyTrait {
@@ -215,7 +197,7 @@
         <!-- ####################### -->
 
         <section>
-            <h3> Implementation de Trait 1/2 </h3>
+            <h3> Implémentation de Trait 1/2 </h3>
 
             <pre><code style="font-size:80%" data-trim data-noescape class="Rust">
                 impl MyTrait for MyStruct {
@@ -224,7 +206,7 @@
                     }</span>
 
                     <span class="fragment">fn description(&self) -> String {
-                        "MyTrait(...)".to_string()
+                        String::from("MyStruct(...)")
                     }</span>
                 }
             </code></pre>
@@ -234,16 +216,17 @@
         <!-- ####################### -->
 
         <section>
-            <h3> Implementation de Trait 2/2 </h3>
+            <h3> Implémentation de Trait 2/2 </h3>
 
             <pre><code style="font-size:80%" data-trim data-noescape class="Rust">
                 impl MyTrait for <span class="fragment" data-fragment-index="1">String</span> {
-                    <span class="fragment" data-fragment-index="2">fn new(source: String) -> Self {
-                        source
+                    <span class="fragment" data-fragment-index="2">fn new(source: String) -> Self { // Self &equiv; String
+                        source                       // Identity
                     }</span>
 
                     <span class="fragment" data-fragment-index="3">fn description(&self) -> String {
-                        self<span class="fragment" data-fragment-index="4">.clone()</span> // Borrowing <span class="fragment" data-fragment-index="4">&rArr; Ownership</span>
+                        self<span class="fragment" data-fragment-index="4">.clone()</span> // Borrowing <span
+                                class="fragment" data-fragment-index="4">&rArr; Ownership</span>
                     }</span>
                 }
             </code></pre>
@@ -253,20 +236,20 @@
         <!-- ####################### -->
 
         <section>
-            <h3> Execution 1/2 </h3>
+            <h3> Utilisation 1/3 </h3>
 
             <pre><code style="font-size:80% " data-trim data-noescape class="Rust">
                 fn main() {
-                    let object : MyStruct = MyTrait::new("test".to_string());
-                    let description = object.description(); // "MyStruct(...)"
+                    let data : MyStruct = MyTrait::new(String::from("test"));
+                    let description = data.description(); // "MyStruct(...)"
                     ...
                 }
             </code></pre>
 
             <pre class="fragment"><code style="font-size:80%" data-trim data-noescape class="Rust">
                 fn main() {
-                    let object : String = MyTrait::new("test".to_string());
-                    let description = object.description(); // "test"
+                    let data : String = MyTrait::new(String::from("test"));
+                    let description = data.description(); // "test"
                     ...
                 }
             </code></pre>
@@ -276,20 +259,35 @@
         <!-- ####################### -->
 
         <section>
-            <h3> Execution 2/2 </h3>
+            <h3> Utilisation 2/3 </h3>
 
             <pre><code style="font-size:80% " data-trim data-noescape class="Rust">
                 fn main() {
-                    let object = MyStruct { source: "test".to_string() };
-                    let description = object.description(); // "MyStruct(...)"
+                    let data = &lt;MyStruct>::new(String::from("test"));
+                    let description = data.description(); // "MyStruct(...)"
+                    ...
+                }
+            </code></pre>
+
+        </section>
+
+        <!-- ####################### -->
+
+        <section>
+            <h3> Utilisation 3/3 </h3>
+
+            <pre><code style="font-size:80% " data-trim data-noescape class="Rust">
+                fn main() {
+                    let data = MyStruct { source: String::from("test") };
+                    let description = data.description(); // "MyStruct(...)"
                     ...
                 }
             </code></pre>
 
             <pre class="fragment"><code style="font-size:80%" data-trim data-noescape class="Rust">
                 fn main() {
-                    let object = "test".to_string();
-                    let description = object.description(); // "test"
+                    let data = String::from("test");
+                    let description = data.description(); // "test"
                     ...
                 }
             </code></pre>
@@ -302,18 +300,28 @@
             <h3> Passage à la pratique </h3>
 
             <code class="fragment" style="font-size:80%" data-trim data-noescape class="Ocaml">
-                &forall; A &rArr; String &rarr; (Success&lt;A>|Reject)
+                Parser A = String &rarr; (Success&lt;A>|Reject)
             </code>
 
-            <p class="fragment">REX Parser <del>combinateur</del> &#x1F612;</p>
+            <p class="fragment">Version simplifiée &#x1F612;</p>
         </section>
 
         <!-- ####################### -->
 
         <section>
-            <h3> Stage #1 - Code Review </h3>
+            <h3> Stage #1 <br> L'approche naïve </h3>
 
-            <p> L'approche naïve </p>
+            <img class="fragment" src="images/mixin.png" style="background: transparent; border: 0px; width: 30%">
+        </section>
+
+        <section>
+            <h3> Ownership </h3>
+
+            <ul>
+                <li> A une valeur correspond une variable: le <span class="keyword">owner</span>.
+                <li> Il n'y a qu'un seul <span class="keyword">owner</span> à la fois.
+                <li> Quand le <span class="keyword">owner</span> est hors de portée, la valeur est abandonnée
+            </ul>
         </section>
 
         <!-- ####################### -->
@@ -322,23 +330,24 @@
             <h3> Problèmes ouverts </h3>
 
             <ul>
-                <li class="fragment"> Clonage de chaîne </li>
-                <li class="fragment" type="none"> &#x21b3; Ownership à l'exécution i.e. <span class="keyword">parse</span> </li>
+                <li class="fragment"> Clonage de chaîne</li>
+                <li class="fragment" type="none"> &#x21b3; Ownership à l'exécution i.e. <span
+                        class="keyword">parse</span></li>
+                <li class="fragment" type="none"> &#x21b3; Forte consommation mémoire</li>
 
                 <li class="fragment"> Utilisation de <span class="keyword">Box</span></li>
-                <li class="fragment"> Couplage fort structure et comportement</li>
-
             </ul>
         </section>
 
         <!-- ####################### -->
 
         <section>
-            <h3> Stage #2 - Code Review </h3>
+            <h3> Stage #2 <br> Zéro copie ! </h3>
 
-            <p> Zéro copie ! </p>
+            <p> Elimination du clonage de chaîne </p>
+
             <br>
-            <p style="font-size: 80%" class="remark fragment"> Ownership &rArr; Borrowing  </p>
+            <p style="font-size: 80%" class="remark fragment"> Ownership &rArr; Borrowing </p>
         </section>
 
         <!-- ####################### -->
@@ -348,41 +357,16 @@
 
             <ul>
                 <li class="fragment"> Utilisation de <span class="keyword">Box</span></li>
-
-                <li class="fragment"> Couplage fort structure et comportement</li>
-                <li class="fragment"> Impossible de capturer un fragment</li>
+                <li class="fragment"> Impossible de capturer une sous-chaîne</li>
             </ul>
         </section>
 
         <!-- ####################### -->
 
         <section>
-            <h3> Stage #3 - Live Coding </h3>
-
-            <p> Elimination des <span class="keyword">Box</span> </p>
+            <h3> Stage #3 <br> Elimination des <span class="keyword">Box</span></h3>
             <br>
             <p style="font-size: 80%" class="remark fragment"> Polymorphisme Paramétrique </p>
-        </section>
-
-        <!-- ####################### -->
-
-        <section>
-            <h3> Problèmes ouverts </h3>
-
-            <ul>
-                <li class="fragment"> Couplage fort structure et comportement</li>
-                <li class="fragment"> Impossible de capturer un fragment</li>
-            </ul>
-        </section>
-
-        <!-- ####################### -->
-
-        <section>
-            <h3> Stage #4 - Live Coding </h3>
-
-            <p> Découplage structure/comportement </p>
-            <br>
-            <p style="font-size: 80%" class="remark fragment"> Multiplication des Traits </p>
         </section>
 
         <!-- ####################### -->
@@ -391,17 +375,15 @@
             <h3> Problème ouvert </h3>
 
             <ul>
-                <li class="fragment"> Impossible de capturer un fragment</li>
-                <li class="fragment" type="none"> &#x21b3; Pas de Lifetime à l'exécution i.e. <tt>parse</tt> </li>
+                <li class="fragment"> Impossible de capturer une sous-chaîne</li>
+                <li class="fragment" type="none"> &#x21b3; Pas de Lifetime à l'analyse i.e. <tt>parse</tt></li>
             </ul>
         </section>
 
         <!-- ####################### -->
 
         <section>
-            <h3> Stage #5 - Live Coding </h3>
-
-            <p> Permettre le Capture de fragment </p>
+            <h3> Stage #4 <br> Permettre la capture <br> de sous-chaîne </h3>
             <br>
             <p style="font-size: 80%" class="remark fragment"> Borrowing avec Lifetime explicite </p>
         </section>
@@ -409,9 +391,32 @@
         <!-- ####################### -->
 
         <section>
-            <h3> Stage #6 - Live Coding </h3>
+            <img src="images/lifetime.png">
+        </section>
 
-            <p> Opérer la capture de fragment </p>
+        <!-- ####################### -->
+
+        <section>
+            <h3> Problème ouvert </h3>
+
+            <ul>
+                <li class="fragment"> Couplage fort structure et comportement</li>
+                <li class="fragment" type="none"> &#x21b3; Lifetime à tous les niveaux !</li>
+            </ul>
+        </section>
+
+        <!-- ####################### -->
+
+        <section>
+            <h3> Stage #5 <br> Découplage </h3>
+            <br>
+            <p style="font-size: 80%" class="remark fragment"> Multiplication des Traits </p>
+        </section>
+
+        <!-- ####################### -->
+
+        <section>
+            <h3> Stage #6 <br> Capture de sous-chaîne efficace </h3>
             <br>
             <p style="font-size: 80%" class="remark fragment"> "Expression Problem" partiel</p>
         </section>
@@ -419,12 +424,18 @@
         <!-- ####################### -->
 
         <section>
-            <h3> Basic benchmarks </h3>
+            <img src="images/expression.png">
+        </section>
+
+        <!-- ####################### -->
+
+        <section>
+            <h3> Benchmarks simple </h3>
 
             <table style="font-size: 80%">
                 <tr class="fragment">
                     <td> #1</td>
-                    <td style="background: #27313d"> 3 M/s</td>
+                    <td style="background: #446688"> 3 M/s</td>
                     <td width="30%">
                         <div class="w3-border">
                             <div class="w3-grey" style="height:24px;width:1%"></div>
@@ -434,7 +445,7 @@
                 </tr>
                 <tr class="fragment">
                     <td> #2</td>
-                    <td style="background: #27313d"> 51 M/s</td>
+                    <td style="background: #446688"> 51 M/s</td>
                     <td width="30%">
                         <div class="w3-border">
                             <div class="w3-grey" style="height:24px;width:4%"></div>
@@ -444,43 +455,43 @@
                 </tr>
                 <tr class="fragment" data->
                     <td> #3</td>
-                    <td style="background: #27313d"> 77 M/s</td>
+                    <td style="background: #446688"> 77 M/s</td>
                     <td width="30%">
                         <div class="w3-border">
                             <div class="w3-grey" style="height:24px;width:6%"></div>
                         </div>
                     </td>
-                    <td style="font-size: 80%">No Box | Borrowing</td>
+                    <td style="font-size: 80%"><strike>Box</strike> | Borrowing</td>
                 </tr>
                 <tr class="fragment">
                     <td> #4</td>
-                    <td style="background: #27313d"> 77 M/s</td>
+                    <td style="background: #446688"> 77 M/s</td>
                     <td width="30%">
                         <div class="w3-border">
                             <div class="w3-grey" style="height:24px;width:6%"></div>
                         </div>
                     </td>
-                    <td style="font-size: 80%">No Box | Borrowing</td>
+                    <td style="font-size: 80%"><strike>Box</strike> | Borrowing</td>
                 </tr>
                 <tr class="fragment">
                     <td> #5</td>
-                    <td style="background: #27313d"> 77 M/s</td>
+                    <td style="background: #446688"> 77 M/s</td>
                     <td width="30%">
                         <div class="w3-border">
                             <div class="w3-grey" style="height:24px;width:6%"></div>
                         </div>
                     </td>
-                    <td style="font-size: 80%">No Box | Borrowing + Lifetime</td>
+                    <td style="font-size: 80%"><strike>Box</strike> | Borrowing + Lifetime</td>
                 </tr>
                 <tr class="fragment">
-                    <td> #6 </td>
-                    <td style="background: #27313d"> 1260 M/s</td>
+                    <td> #6</td>
+                    <td style="background: #446688"> 1260 M/s</td>
                     <td width="30%">
                         <div class="w3-border">
                             <div class="w3-grey" style="height:24px;width:100%"></div>
                         </div>
                     </td>
-                    <td style="font-size: 80%">No Box | Borrowing + Lifetime</td>
+                    <td style="font-size: 80%"><strike>Box</strike> | Borrowing + Lifetime</td>
                 </tr>
             </table>
 

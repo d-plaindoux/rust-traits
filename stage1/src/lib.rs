@@ -12,8 +12,8 @@ type Response<A> = response::Response<A, String>;
 
 //  ------------------------------------------------------------------------------------------------
 
-pub trait Parser<A> {
-    fn parse(&self, s: String) -> Response<A>;
+pub trait Parse<A> {
+    fn parse(&self, s: String) -> Response<A>; // self Borrowed & String ownership
 }
 
 // ------------------------------------------------------------------------------------------------
@@ -21,9 +21,9 @@ pub trait Parser<A> {
 // The Satisfy parser
 //
 
-struct Satisfy(Box<Fn(char) -> bool>);
+struct Satisfy(Box<Fn(char) -> bool>); // Unknown size: Fn(...) -> ... =>
 
-impl Parser<char> for Satisfy {
+impl Parse<char> for Satisfy {
     fn parse(&self, s: String) -> Response<char> {
         let Satisfy(f) = self;
 
@@ -39,16 +39,16 @@ impl Parser<char> for Satisfy {
     }
 }
 
-fn any() -> impl Parser<char> {
+fn any() -> impl Parse<char> {
     Satisfy(Box::new(|_| true))
 }
 
-fn char(c: char) -> impl Parser<char>  {
-    Satisfy(Box::new(move |v| v == c))
+fn char(c: char) -> impl Parse<char>  {
+    Satisfy(Box::new(move |v| v == c)) // move the Ownership
 }
 
-fn not(c: char) -> impl Parser<char>  {
-    Satisfy(Box::new(move |v| v != c))
+fn not(c: char) -> impl Parse<char>  {
+    Satisfy(Box::new(move |v| v != c)) // move the Ownership
 }
 
 #[cfg(test)]
@@ -56,7 +56,7 @@ mod tests_satisfy {
     use crate::any;
     use crate::char;
     use crate::not;
-    use crate::Parser;
+    use crate::Parse;
 
     #[test]
     fn it_parse_any_character() {
@@ -106,13 +106,13 @@ mod tests_satisfy {
 // The And parser
 //
 
-struct And<A, B> (pub Box<Parser<A>>, pub Box<Parser<B>>);
+struct And<A, B> (pub Box<Parse<A>>, pub Box<Parse<B>>);
 
 macro_rules! and {
     ($a:expr, $b:expr) => { And(Box::new($a), Box::new($b)) };
 }
 
-impl<A, B> Parser<(A, B)> for And<A, B> {
+impl<A, B> Parse<(A, B)> for And<A, B> {
     fn parse(&self, s: String) -> Response<(A, B)> {
         let And(left, right) = self;
 
@@ -132,7 +132,7 @@ impl<A, B> Parser<(A, B)> for And<A, B> {
 mod tests_and {
     use crate::And;
     use crate::char;
-    use crate::Parser;
+    use crate::Parse;
 
     #[test]
     fn it_parse_two_characters() {
@@ -154,7 +154,7 @@ mod tests_and {
 // The Repeatable parser
 //
 
-pub struct Repeat<A> (pub bool, pub Box<Parser<A>>);
+pub struct Repeat<A> (pub bool, pub Box<Parse<A>>);
 
 #[macro_export]
 macro_rules! rep {
@@ -165,7 +165,7 @@ macro_rules! optrep {
     ($a:expr) => { Repeat(true, Box::new($a)) };
 }
 
-impl<A> Parser<Vec<A>> for Repeat<A> {
+impl<A> Parse<Vec<A>> for Repeat<A> {
     fn parse(&self, s: String) -> Response<Vec<A>> {
         let Repeat(opt, p) = self;
 
@@ -195,7 +195,7 @@ impl<A> Parser<Vec<A>> for Repeat<A> {
 #[cfg(test)]
 mod tests_repeat {
     use crate::char;
-    use crate::Parser;
+    use crate::Parse;
     use crate::Repeat;
 
     #[test]
@@ -229,7 +229,7 @@ mod tests_repeat {
 
 type Delimited = (char, (Vec<char>, char));
 
-pub fn delimited_string() -> impl Parser<Delimited> {
+pub fn delimited_string() -> impl Parse<Delimited> {
     let sep = '"';
 
     and!(char(sep), and!(optrep!(not(sep)), char(sep)))
@@ -238,7 +238,7 @@ pub fn delimited_string() -> impl Parser<Delimited> {
 #[cfg(test)]
 mod tests_delimited_string {
     use crate::delimited_string;
-    use crate::Parser;
+    use crate::Parse;
 
     #[test]
     fn it_parse_a_three_characters_string() {

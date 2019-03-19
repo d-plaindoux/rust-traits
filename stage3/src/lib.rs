@@ -14,7 +14,7 @@ type Response<A> = response::Response<A, usize>;
 
 //  ------------------------------------------------------------------------------------------------
 
-pub trait Parser<A> {
+pub trait Parse<A> {
     fn parse(&self, s: &[u8], o: usize) -> Response<A>;
 }
 
@@ -25,7 +25,7 @@ pub trait Parser<A> {
 
 struct Satisfy<E>(E) where E: Fn(char) -> bool;
 
-impl<E> Parser<char> for Satisfy<E> where E: Fn(char) -> bool {
+impl<E> Parse<char> for Satisfy<E> where E: Fn(char) -> bool {
     fn parse(&self, s: &[u8], o: usize) -> Response<char> {
         if o < s.len() {
             let Satisfy(f) = self;
@@ -40,15 +40,15 @@ impl<E> Parser<char> for Satisfy<E> where E: Fn(char) -> bool {
     }
 }
 
-fn any() -> impl Parser<char> {
+fn any() -> impl Parse<char> {
     Satisfy(|_| true)
 }
 
-fn char(c: char) -> impl Parser<char> {
+fn char(c: char) -> impl Parse<char> {
     Satisfy(move |v| v == c)
 }
 
-fn not(c: char) -> impl Parser<char> {
+fn not(c: char) -> impl Parse<char> {
     Satisfy(move |v| v != c)
 }
 
@@ -57,7 +57,7 @@ mod tests_satisfy {
     use crate::any;
     use crate::char;
     use crate::not;
-    use crate::Parser;
+    use crate::Parse;
 
     #[test]
     fn it_parse_any_character() {
@@ -108,16 +108,16 @@ mod tests_satisfy {
 //
 
 struct And<L, R, A, B> (L, R, PhantomData<A>, PhantomData<B>)
-    where L: Parser<A>,
-          R: Parser<B>;
+    where L: Parse<A>,
+          R: Parse<B>;
 
 macro_rules! and {
 ( $ a: expr, $ b: expr) => { And( $ a, $ b, PhantomData, PhantomData) };
 }
 
-impl<L, R, A, B> Parser<(A, B)> for And<L, R, A, B>
-    where L: Parser<A>,
-          R: Parser<B>
+impl<L, R, A, B> Parse<(A, B)> for And<L, R, A, B>
+    where L: Parse<A>,
+          R: Parse<B>
 {
     fn parse(&self, s: &[u8], o: usize) -> Response<(A, B)> {
         let And(left, right, _, _) = self;
@@ -140,7 +140,7 @@ mod tests_and {
 
     use crate::And;
     use crate::char;
-    use crate::Parser;
+    use crate::Parse;
 
     #[test]
     fn it_parse_two_characters() {
@@ -163,19 +163,19 @@ mod tests_and {
 //
 
 pub struct Repeat<P, A> (pub bool, pub P, pub PhantomData<A>)
-    where P: Parser<A>;
+    where P: Parse<A>;
 
 #[macro_export]
 macro_rules! rep {
-( $ a: expr) => { Repeat(false, $ a, PhantomData) };
+($a: expr) => { Repeat(false, $ a, PhantomData) };
 }
 
 macro_rules! optrep {
-( $ a: expr) => { Repeat(true, $ a, PhantomData) };
+($a: expr) => { Repeat(true, $ a, PhantomData) };
 }
 
-impl<P, A> Parser<Vec<A>> for Repeat<P, A>
-    where P: Parser<A>
+impl<P, A> Parse<Vec<A>> for Repeat<P, A>
+    where P: Parse<A>
 {
     fn parse(&self, s: &[u8], o: usize) -> Response<Vec<A>> {
         let Repeat(opt, p, _) = self;
@@ -208,7 +208,7 @@ mod tests_repeat {
     use std::marker::PhantomData;
 
     use crate::char;
-    use crate::Parser;
+    use crate::Parse;
     use crate::Repeat;
 
     #[test]
@@ -244,16 +244,16 @@ mod tests_repeat {
 
 type Delimited = (char, (Vec<char>, char));
 
-pub fn delimited_string() -> impl Parser<Delimited> {
+pub fn delimited_string() -> impl Parse<Delimited> {
     let sep = '"';
 
-    and!(char(sep), and ! (optrep ! (not(sep)), char(sep)))
+    and!(char(sep), and!(optrep! (not(sep)), char(sep)))
 }
 
 #[cfg(test)]
 mod tests_delimited_string {
     use crate::delimited_string;
-    use crate::Parser;
+    use crate::Parse;
 
     #[test]
     fn it_parse_a_three_characters_string() {

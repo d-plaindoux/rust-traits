@@ -1,7 +1,7 @@
 #![allow(dead_code)]
 
 //
-//   Stage 4: "Separation of concern"
+//   Stage 3: "Eliminate Boxes"
 //
 
 use std::marker::PhantomData;
@@ -13,12 +13,9 @@ use response::Response::{Reject, Success};
 type Response<A> = response::Response<A, usize>;
 
 //  ------------------------------------------------------------------------------------------------
-// Separate type from behaviors
 
-pub trait Parser<A> {}
-
-pub trait Executable<A> {
-    fn parse(&self, s: &[u8], o: usize) -> Response<A>;
+pub trait Parser<'a, A> {
+    fn parse(&self, s: &'a [u8], o: usize) -> Response<A>;
 }
 
 // ------------------------------------------------------------------------------------------------
@@ -26,14 +23,15 @@ pub trait Executable<A> {
 // The Satisfy parser
 //
 
-impl<E> Parser<char> for E where E: Fn(char) -> bool {}
+struct Satisfy<E>(E) where E: Fn(char) -> bool;
 
-impl<E> Executable<char> for E where E: Fn(char) -> bool {
-    fn parse(&self, s: &[u8], o: usize) -> Response<char> {
+impl<'a, E> Parser<'a, char> for Satisfy<E> where E: Fn(char) -> bool {
+    fn parse(&self, s: &'a [u8], o: usize) -> Response<char> {
         if o < s.len() {
+            let Satisfy(f) = self;
             let c = s[o] as char; // Simplified approach
 
-            if self(c) {
+            if f(c) {
                 return Success(c, o + 1);
             }
         }
@@ -42,24 +40,24 @@ impl<E> Executable<char> for E where E: Fn(char) -> bool {
     }
 }
 
-fn any() -> impl Fn(char) -> bool {
-    |_| true
+fn any<'a>() -> impl Parser<'a, char> {
+    Satisfy(|_| true)
 }
 
-fn char(c: char) -> impl Fn(char) -> bool {
-    move |v| v == c
+fn char<'a>(c: char) -> impl Parser<'a, char> {
+    Satisfy(move |v| v == c)
 }
 
-fn not(c: char) -> impl Fn(char) -> bool {
-    move |v| v != c
+fn not<'a>(c: char) -> impl Parser<'a, char> {
+    Satisfy(move |v| v != c)
 }
 
 #[cfg(test)]
 mod tests_satisfy {
     use crate::any;
     use crate::char;
-    use crate::Executable;
     use crate::not;
+    use crate::Parser;
 
     #[test]
     fn it_parse_any_character() {
@@ -109,25 +107,20 @@ mod tests_satisfy {
 // The And parser
 //
 
-struct And<L, R, A, B> (L, R, PhantomData<A>, PhantomData<B>)
-    where L: Parser<A>,
-          R: Parser<B>;
+pub struct And<'a, L, R, A, B> (L, R, PhantomData<A>, PhantomData<B>, PhantomData<&'a [u8]>)
+    where L: Parser<'a, A>,
+          R: Parser<'a, B>;
 
 macro_rules! and {
-( $ a: expr, $ b: expr) => { And( $ a, $ b, PhantomData, PhantomData) };
+( $ a: expr, $ b: expr) => { And( $ a, $ b, PhantomData, PhantomData, PhantomData) };
 }
 
-impl<L, R, A, B> Parser<(A, B)> for And<L, R, A, B>
-    where L: Parser<A>,
-          R: Parser<B>
-{}
-
-impl<L, R, A, B> Executable<(A, B)> for And<L, R, A, B>
-    where L: Executable<A> + Parser<A>,
-          R: Executable<B> + Parser<B>
+impl<'a, L, R, A, B> Parser<'a, (A, B)> for And<'a, L, R, A, B>
+    where L: Parser<'a, A>,
+          R: Parser<'a, B>
 {
-    fn parse(&self, s: &[u8], o: usize) -> Response<(A, B)> {
-        let And(left, right, _, _) = self;
+    fn parse(&self, s: &'a [u8], o: usize) -> Response<(A, B)> {
+        let And(left, right, _, _, _) = self;
 
         match left.parse(s, o) {
             Success(v1, s1) => {
@@ -147,7 +140,7 @@ mod tests_and {
 
     use crate::And;
     use crate::char;
-    use crate::Executable;
+    use crate::Parser;
 
     #[test]
     fn it_parse_two_characters() {
@@ -169,27 +162,23 @@ mod tests_and {
 // The Repeatable parser
 //
 
-pub struct Repeat<P, A> (pub bool, pub P, pub PhantomData<A>)
-    where P: Parser<A>;
+pub struct Repeat<'a, P, A> (pub bool, pub P, pub PhantomData<A>, pub PhantomData<&'a [u8]>)
+    where P: Parser<'a, A>;
 
 #[macro_export]
 macro_rules! rep {
-( $ a: expr) => { Repeat(false, $ a, PhantomData) };
+($a: expr) => { Repeat(false, $ a, PhantomData, PhantomData) };
 }
 
 macro_rules! optrep {
-( $ a: expr) => { Repeat(true, $ a, PhantomData) };
+($a: expr) => { Repeat(true, $ a, PhantomData, PhantomData) };
 }
 
-impl<P, A> Parser<Vec<A>> for Repeat<P, A>
-    where P: Parser<A>
-{}
-
-impl<P, A> Executable<Vec<A>> for Repeat<P, A>
-    where P: Executable<A> + Parser<A>
+impl<'a, P, A> Parser<'a, Vec<A>> for Repeat<'a, P, A>
+    where P: Parser<'a, A>
 {
-    fn parse(&self, s: &[u8], o: usize) -> Response<Vec<A>> {
-        let Repeat(opt, p, _) = self;
+    fn parse(&self, s: &'a [u8], o: usize) -> Response<Vec<A>> {
+        let Repeat(opt, p, _, _) = self;
 
         let mut values: Vec<A> = Vec::with_capacity(if *opt { 0 } else { 1 });
         let mut offset = o;
@@ -219,7 +208,7 @@ mod tests_repeat {
     use std::marker::PhantomData;
 
     use crate::char;
-    use crate::Executable;
+    use crate::Parser;
     use crate::Repeat;
 
     #[test]
@@ -249,30 +238,40 @@ mod tests_repeat {
 // Example examples
 //
 
-type Delimited = (char, (Vec<char>, char));
+pub struct Delimited;
 
-pub fn delimited_string() -> impl Executable<Delimited> + Parser<Delimited> {
-    let sep = '"';
+impl<'a> Parser<'a, (&'a [u8], usize, usize)> for Delimited {
+    fn parse(&self, s: &'a [u8], o: usize) -> Response<(&'a [u8], usize, usize)> {
+        let sep = '"';
+        let response = and!(char(sep), and!(optrep!(not(sep)), char(sep))).parse(s, o);
 
-    and!(char(sep), and!(optrep!(not(sep)), char(sep)))
+        match response {
+            Success(_, e) => Success((s, o + 1, e - 1), e),
+            Reject => Reject
+        }
+    }
+}
+
+pub fn delimited_string<'a>() -> Delimited {
+    Delimited
 }
 
 #[cfg(test)]
 mod tests_delimited_string {
     use crate::delimited_string;
-    use crate::Executable;
+    use crate::Parser;
 
     #[test]
     fn it_parse_a_three_characters_string() {
         let response = delimited_string().parse(b"\"aaa\"", 0);
 
-        assert_eq!(response.fold(|(_,(v,_)), _| v.len() == 3, || false), true);
+        assert_eq!(response.fold(|(_, s, e), _| e - s == 3, || false), true);
     }
 
     #[test]
     fn it_parse_an_empty_string() {
         let response = delimited_string().parse(b"\"\"", 0);
 
-        assert_eq!(response.fold(|(_,(v,_)), _| v.len() == 0, || false), true);
+        assert_eq!(response.fold(|(_, s, e), _| e - s == 0, || false), true);
     }
 }

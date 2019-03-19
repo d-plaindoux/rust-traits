@@ -15,9 +15,9 @@ type Response<A> = response::Response<A, usize>;
 //  ------------------------------------------------------------------------------------------------
 // Separate type from behaviors
 
-pub trait Parser<A> {}
+pub trait Combine<A> {}
 
-pub trait Executable<'a, A> {
+pub trait Parse<'a, A> {
     fn parse(&self, s: &'a [u8], o: usize) -> Response<A>;
 }
 
@@ -26,9 +26,9 @@ pub trait Executable<'a, A> {
 // The Satisfy parser
 //
 
-impl<E> Parser<char> for E where E: Fn(char) -> bool {}
+impl<E> Combine<char> for E where E: Fn(char) -> bool {}
 
-impl<'a, E> Executable<'a, char> for E where E: Fn(char) -> bool {
+impl<'a, E> Parse<'a, char> for E where E: Fn(char) -> bool {
     fn parse(&self, s: &'a [u8], o: usize) -> Response<char> {
         if o < s.len() {
             let c = s[o] as char; // Simplified approach
@@ -58,7 +58,7 @@ fn not(c: char) -> impl Fn(char) -> bool {
 mod tests_satisfy {
     use crate::any;
     use crate::char;
-    use crate::Executable;
+    use crate::Parse;
     use crate::not;
 
     #[test]
@@ -110,21 +110,21 @@ mod tests_satisfy {
 //
 
 struct And<L, R, A, B> (L, R, PhantomData<A>, PhantomData<B>)
-    where L: Parser<A>,
-          R: Parser<B>;
+    where L: Combine<A>,
+          R: Combine<B>;
 
 macro_rules! and {
 ( $ a: expr, $ b: expr) => { And( $ a, $ b, PhantomData, PhantomData) };
 }
 
-impl<L, R, A, B> Parser<(A, B)> for And<L, R, A, B>
-    where L: Parser<A>,
-          R: Parser<B>
+impl<L, R, A, B> Combine<(A, B)> for And<L, R, A, B>
+    where L: Combine<A>,
+          R: Combine<B>
 {}
 
-impl<'a, L, R, A, B> Executable<'a, (A, B)> for And<L, R, A, B>
-    where L: Executable<'a, A> + Parser<A>,
-          R: Executable<'a, B> + Parser<B>
+impl<'a, L, R, A, B> Parse<'a, (A, B)> for And<L, R, A, B>
+    where L: Parse<'a, A> + Combine<A>,
+          R: Parse<'a, B> + Combine<B>
 {
     fn parse(&self, s: &'a [u8], o: usize) -> Response<(A, B)> {
         let And(left, right, _, _) = self;
@@ -147,7 +147,7 @@ mod tests_and {
 
     use crate::And;
     use crate::char;
-    use crate::Executable;
+    use crate::Parse;
 
     #[test]
     fn it_parse_two_characters() {
@@ -170,7 +170,7 @@ mod tests_and {
 //
 
 pub struct Repeat<P, A> (pub bool, pub P, pub PhantomData<A>)
-    where P: Parser<A>;
+    where P: Combine<A>;
 
 #[macro_export]
 macro_rules! rep {
@@ -181,12 +181,12 @@ macro_rules! optrep {
 ( $ a: expr) => { Repeat(true, $ a, PhantomData) };
 }
 
-impl<P, A> Parser<Vec<A>> for Repeat<P, A>
-    where P: Parser<A>
+impl<P, A> Combine<Vec<A>> for Repeat<P, A>
+    where P: Combine<A>
 {}
 
-impl<'a, P, A> Executable<'a, Vec<A>> for Repeat<P, A>
-    where P: Executable<'a, A> + Parser<A>
+impl<'a, P, A> Parse<'a, Vec<A>> for Repeat<P, A>
+    where P: Parse<'a, A> + Combine<A>
 {
     fn parse(&self, s: &'a [u8], o: usize) -> Response<Vec<A>> {
         let Repeat(opt, p, _) = self;
@@ -219,7 +219,7 @@ mod tests_repeat {
     use std::marker::PhantomData;
 
     use crate::char;
-    use crate::Executable;
+    use crate::Parse;
     use crate::Repeat;
 
     #[test]
@@ -249,30 +249,42 @@ mod tests_repeat {
 // Example examples
 //
 
-type Delimited = (char, (Vec<char>, char));
+pub struct Delimited;
 
-pub fn delimited_string<'a>() -> impl Executable<'a, Delimited> + Parser<Delimited> {
-    let sep = '"';
+impl<'a> Combine<(&'a [u8], usize, usize)> for Delimited {}
 
-    and!(char(sep), and!(optrep!(not(sep)), char(sep)))
+impl<'a> Parse<'a, (&'a [u8], usize, usize)> for Delimited {
+    fn parse(&self, s: &'a [u8], o: usize) -> Response<(&'a [u8], usize, usize)> {
+        let sep = '"';
+        let response = and!(char(sep), and!(optrep!(not(sep)), char(sep))).parse(s, o);
+
+        match response {
+            Success(_, no) => Success((s, o + 1, no - 1), no),
+            Reject => Reject
+        }
+    }
+}
+
+pub fn delimited_string() -> Delimited {
+    Delimited
 }
 
 #[cfg(test)]
 mod tests_delimited_string {
     use crate::delimited_string;
-    use crate::Executable;
+    use crate::Parse;
 
     #[test]
     fn it_parse_a_three_characters_string() {
         let response = delimited_string().parse(b"\"aaa\"", 0);
 
-        assert_eq!(response.fold(|(_, (v, _)), _| v.len() == 3, || false), true);
+        assert_eq!(response.fold(|(_, s, e), _| e - s == 3, || false), true);
     }
 
     #[test]
     fn it_parse_an_empty_string() {
         let response = delimited_string().parse(b"\"\"", 0);
 
-        assert_eq!(response.fold(|(_, (v, _)), _| v.len() == 0, || false), true);
+        assert_eq!(response.fold(|(_, s, e), _| e - s == 0, || false), true);
     }
 }

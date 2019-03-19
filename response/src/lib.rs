@@ -37,4 +37,3 @@ mod tests_response {
         assert_eq!(v.fold(|_, _| true, || false), false);
     }
 }
-
