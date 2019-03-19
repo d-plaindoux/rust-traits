@@ -17,7 +17,7 @@ fn literal_delimited_string(b: &mut Bencher) {
 }
 
 fn parse<'a, E, A>(parser: E, b: &mut Bencher, buffer: &'a [u8])
-    where E: Executable<'a, A> + Parser<A>,
+    where E: Parse<'a, A> + Combine<A>,
 {
     b.iter(|| {
         let buffer = black_box(buffer);
