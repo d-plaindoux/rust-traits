@@ -21,8 +21,8 @@ pub trait Parse<'a, A> {
     fn parse(&self, s: &'a [u8], o: usize) -> Response<A>;
 }
 
-pub trait Check<'a> {
-    fn check(&self, s: &'a [u8], o: usize) -> Response<()>;
+pub trait Check {
+    fn check(&self, s: &[u8], o: usize) -> Response<()>;
 }
 
 // ------------------------------------------------------------------------------------------------
@@ -46,8 +46,8 @@ impl<'a, E> Parse<'a, char> for E where E: Fn(char) -> bool {
     }
 }
 
-impl<'a, E> Check<'a> for E where E: Fn(char) -> bool {
-    fn check(&self, s: &'a [u8], o: usize) -> Response<()> {
+impl<E> Check for E where E: Fn(char) -> bool {
+    fn check(&self, s: &[u8], o: usize) -> Response<()> {
         match self.parse(s, o) {
             Success(_,s) => Success((), s),
             Reject => Reject
@@ -155,11 +155,11 @@ impl<'a, L, R, A, B> Parse<'a, (A, B)> for And<L, R, A, B>
     }
 }
 
-impl<'a, L, R, A, B> Check<'a> for And<L, R, A, B>
-    where L: Check<'a,> + Combine<A>,
-          R: Check<'a> + Combine<B>
+impl<L, R, A, B> Check for And<L, R, A, B>
+    where L: Check + Combine<A>,
+          R: Check + Combine<B>
 {
-    fn check(&self, s: &'a [u8], o: usize) -> Response<()> {
+    fn check(&self, s: &[u8], o: usize) -> Response<()> {
         let And(left, right, _, _) = self;
 
         match left.check(s, o) {
@@ -247,10 +247,10 @@ impl<'a, P, A> Parse<'a, Vec<A>> for Repeat<P, A>
     }
 }
 
-impl<'a, P, A> Check<'a> for Repeat<P, A>
-    where P: Check<'a> + Combine<A>
+impl<P, A> Check for Repeat<P, A>
+    where P: Check + Combine<A>
 {
-    fn check(&self, s: &'a [u8], o: usize) -> Response<()> {
+    fn check(&self, s: &[u8], o: usize) -> Response<()> {
         let Repeat(opt, p, _) = self;
 
         let mut offset = o;
