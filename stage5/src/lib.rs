@@ -1,7 +1,7 @@
 #![allow(dead_code)]
 
 //
-//   Stage 5: "Lifetime"
+//   Stage 5: Weak coupling introducing Combine trait
 //
 
 use std::marker::PhantomData;

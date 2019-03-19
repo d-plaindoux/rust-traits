@@ -1,7 +1,7 @@
 #![allow(dead_code)]
 
 //
-//   Stage 3: "Eliminate Boxes"
+//   Stage 4: Allow stream capture thanks to explicit lifetime
 //
 
 use std::marker::PhantomData;
