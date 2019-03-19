@@ -4,7 +4,7 @@ extern crate stage3;
 
 use std::marker::PhantomData;
 
-use bencher::{Bencher, black_box};
+use bencher::{black_box, Bencher};
 
 use response::Response::Success;
 use stage3::*;
@@ -17,7 +17,8 @@ fn literal_delimited_string(b: &mut Bencher) {
 }
 
 fn parse<E, A>(p: E, b: &mut Bencher, buffer: &[u8])
-    where E: Parse<A>,
+where
+    E: Parse<A>,
 {
     b.iter(|| {
         let buffer = black_box(buffer);
@@ -29,9 +30,6 @@ fn parse<E, A>(p: E, b: &mut Bencher, buffer: &[u8])
     });
 }
 
-benchmark_group!(
-    benches,
-    literal_delimited_string
-);
+benchmark_group!(benches, literal_delimited_string);
 
 benchmark_main!(benches);

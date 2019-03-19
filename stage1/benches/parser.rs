@@ -3,7 +3,7 @@ extern crate bencher;
 extern crate stage1;
 
 use bencher::{black_box, Bencher};
-use response::Response::{Success};
+use response::Response::Success;
 use stage1::*;
 
 fn literal_delimited_string(b: &mut Bencher) {
@@ -13,23 +13,17 @@ fn literal_delimited_string(b: &mut Bencher) {
 }
 
 fn parse<E, A>(p: E, b: &mut Bencher, buffer: String)
-    where
-        E: Parse<A>,
+where
+    E: Parse<A>,
 {
     let buffer = black_box(buffer);
 
-    b.iter(|| {
-        match p.parse(buffer.clone()) {
-            Success(_,ref s) if { s.is_empty() } => (),
-            _ => panic!("unable parse stream"),
-        }
+    b.iter(|| match p.parse(buffer.clone()) {
+        Success(_, ref s) if { s.is_empty() } => (),
+        _ => panic!("unable parse stream"),
     });
 }
 
-
-benchmark_group!(
-    benches,
-    literal_delimited_string
-);
+benchmark_group!(benches, literal_delimited_string);
 
 benchmark_main!(benches);

@@ -23,12 +23,18 @@ pub trait Parse<A> {
 // The Satisfy parser
 //
 
-struct Satisfy<E>(E) where E: Fn(char) -> bool;
+pub struct Satisfy<E>(pub E)
+where
+    E: Fn(char) -> bool;
 
-impl<E> Parse<char> for Satisfy<E> where E: Fn(char) -> bool {
+impl<E> Parse<char> for Satisfy<E>
+where
+    E: Fn(char) -> bool,
+{
     fn parse(&self, s: &[u8], o: usize) -> Response<char> {
         if o < s.len() {
             let Satisfy(f) = self;
+
             let c = s[o] as char; // Simplified approach
 
             if f(c) {
@@ -40,15 +46,15 @@ impl<E> Parse<char> for Satisfy<E> where E: Fn(char) -> bool {
     }
 }
 
-fn any() -> impl Parse<char> {
+fn any() -> Satisfy<impl Fn(char) -> bool> {
     Satisfy(|_| true)
 }
 
-fn char(c: char) -> impl Parse<char> {
+fn char(c: char) -> Satisfy<impl Fn(char) -> bool> {
     Satisfy(move |v| v == c)
 }
 
-fn not(c: char) -> impl Parse<char> {
+fn not(c: char) -> Satisfy<impl Fn(char) -> bool> {
     Satisfy(move |v| v != c)
 }
 
@@ -107,29 +113,31 @@ mod tests_satisfy {
 // The And parser
 //
 
-struct And<L, R, A, B> (L, R, PhantomData<A>, PhantomData<B>)
-    where L: Parse<A>,
-          R: Parse<B>;
+pub struct And<L, R, A, B>(pub L, pub R, pub PhantomData<A>, pub PhantomData<B>)
+where
+    L: Parse<A>,
+    R: Parse<B>;
 
 macro_rules! and {
-( $ a: expr, $ b: expr) => { And( $ a, $ b, PhantomData, PhantomData) };
+    ( $ a: expr, $ b: expr) => {
+        And($a, $b, PhantomData, PhantomData)
+    };
 }
 
 impl<L, R, A, B> Parse<(A, B)> for And<L, R, A, B>
-    where L: Parse<A>,
-          R: Parse<B>
+where
+    L: Parse<A>,
+    R: Parse<B>,
 {
     fn parse(&self, s: &[u8], o: usize) -> Response<(A, B)> {
         let And(left, right, _, _) = self;
 
         match left.parse(s, o) {
-            Success(v1, s1) => {
-                match right.parse(s, s1) {
-                    Success(v2, s2) => Success((v1, v2), s2),
-                    Reject => Reject
-                }
-            }
-            Reject => Reject
+            Success(v1, s1) => match right.parse(s, s1) {
+                Success(v2, s2) => Success((v1, v2), s2),
+                Reject => Reject,
+            },
+            Reject => Reject,
         }
     }
 }
@@ -138,8 +146,8 @@ impl<L, R, A, B> Parse<(A, B)> for And<L, R, A, B>
 mod tests_and {
     use std::marker::PhantomData;
 
-    use crate::And;
     use crate::char;
+    use crate::And;
     use crate::Parse;
 
     #[test]
@@ -162,20 +170,26 @@ mod tests_and {
 // The Repeatable parser
 //
 
-pub struct Repeat<P, A> (pub bool, pub P, pub PhantomData<A>)
-    where P: Parse<A>;
+pub struct Repeat<P, A>(pub bool, pub P, pub PhantomData<A>)
+where
+    P: Parse<A>;
 
 #[macro_export]
 macro_rules! rep {
-($a: expr) => { Repeat(false, $ a, PhantomData) };
+    ($a: expr) => {
+        Repeat(false, $a, PhantomData)
+    };
 }
 
 macro_rules! optrep {
-($a: expr) => { Repeat(true, $ a, PhantomData) };
+    ($a: expr) => {
+        Repeat(true, $a, PhantomData)
+    };
 }
 
 impl<P, A> Parse<Vec<A>> for Repeat<P, A>
-    where P: Parse<A>
+where
+    P: Parse<A>,
 {
     fn parse(&self, s: &[u8], o: usize) -> Response<Vec<A>> {
         let Repeat(opt, p, _) = self;
@@ -247,7 +261,7 @@ type Delimited = (char, (Vec<char>, char));
 pub fn delimited_string() -> impl Parse<Delimited> {
     let sep = '"';
 
-    and!(char(sep), and!(optrep! (not(sep)), char(sep)))
+    and!(char(sep), and!(optrep!(not(sep)), char(sep)))
 }
 
 #[cfg(test)]

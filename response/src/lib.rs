@@ -5,14 +5,15 @@ pub enum Response<A, S> {
 
 impl<A, S> Response<A, S> {
     pub fn fold<FS, FR, B>(self, success: FS, reject: FR) -> B
-        where FS: Fn(A, S) -> B,
-              FR: Fn() -> B
+    where
+        FS: Fn(A, S) -> B,
+        FR: Fn() -> B,
     {
-        use crate::Response::{Success, Reject};
+        use crate::Response::{Reject, Success};
 
         match self {
             Success(a, s) => success(a, s),
-            Reject => reject()
+            Reject => reject(),
         }
     }
 }

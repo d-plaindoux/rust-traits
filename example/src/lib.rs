@@ -1,6 +1,6 @@
 #[allow(dead_code)]
 struct MyStruct {
-    source: String
+    source: String,
 }
 
 trait MyTrait {
@@ -10,7 +10,8 @@ trait MyTrait {
 }
 
 impl MyTrait for MyStruct {
-    fn my_trait(source: String) -> Self { // Self ≡ MyStruct
+    fn my_trait(source: String) -> Self {
+        // Self ≡ MyStruct
         MyStruct { source }
     }
 
@@ -20,8 +21,9 @@ impl MyTrait for MyStruct {
 }
 
 impl MyTrait for String {
-    fn my_trait(source: String) -> Self { // Self ≡ String
-        source                       // Identity
+    fn my_trait(source: String) -> Self {
+        // Self ≡ String
+        source // Identity
     }
 
     fn description(&self) -> String {
@@ -52,7 +54,9 @@ mod test {
 
     #[test]
     fn should_create_mystruct_3() {
-        let data = MyStruct { source : String::from("test") };
+        let data = MyStruct {
+            source: String::from("test"),
+        };
         let description = data.description(); // "MyStruct(...)"
 
         assert_eq!(description, String::from("MyStruct(...)"))

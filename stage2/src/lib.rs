@@ -21,13 +21,13 @@ pub trait Parse<A> {
 // The Satisfy parser
 //
 
-pub struct Satisfy(pub Box<Fn(char) -> bool>);
+pub struct Satisfy(pub Box<dyn Fn(char) -> bool>);
 
 impl Parse<char> for Satisfy {
     fn parse(&self, s: &[u8], o: usize) -> Response<char> {
-        let Satisfy(f) = self;
-
         if o < s.len() {
+            let Satisfy(f) = self;
+
             let c = s[o] as char; // Simplified approach
 
             if f(c) {
@@ -39,15 +39,15 @@ impl Parse<char> for Satisfy {
     }
 }
 
-fn any() -> impl Parse<char>  {
+fn any() -> Satisfy {
     Satisfy(Box::new(|_| true))
 }
 
-fn char(c: char) -> impl Parse<char>  {
+fn char(c: char) -> Satisfy {
     Satisfy(Box::new(move |v| v == c))
 }
 
-fn not(c: char) -> impl Parse<char>  {
+fn not(c: char) -> Satisfy {
     Satisfy(Box::new(move |v| v != c))
 }
 
@@ -106,10 +106,12 @@ mod tests_satisfy {
 // The And parser
 //
 
-struct And<A, B> (Box<Parse<A>>, Box<Parse<B>>);
+pub struct And<A, B>(pub Box<dyn Parse<A>>, pub Box<dyn Parse<B>>);
 
 macro_rules! and {
-    ($a:expr, $b:expr) => { And(Box::new($a), Box::new($b)) };
+    ($a:expr, $b:expr) => {
+        And(Box::new($a), Box::new($b))
+    };
 }
 
 impl<A, B> Parse<(A, B)> for And<A, B> {
@@ -117,21 +119,19 @@ impl<A, B> Parse<(A, B)> for And<A, B> {
         let And(left, right) = self;
 
         match left.parse(s, o) {
-            Success(v1, s1) => {
-                match right.parse(s, s1) {
-                    Success(v2, s2) => Success((v1, v2), s2),
-                    Reject => Reject
-                }
-            }
-            Reject => Reject
+            Success(v1, s1) => match right.parse(s, s1) {
+                Success(v2, s2) => Success((v1, v2), s2),
+                Reject => Reject,
+            },
+            Reject => Reject,
         }
     }
 }
 
 #[cfg(test)]
 mod tests_and {
-    use crate::And;
     use crate::char;
+    use crate::And;
     use crate::Parse;
 
     #[test]
@@ -154,15 +154,19 @@ mod tests_and {
 // The Repeatable parser
 //
 
-pub struct Repeat<A> (pub bool, pub Box<Parse<A>>);
+pub struct Repeat<A>(pub bool, pub Box<dyn Parse<A>>);
 
 #[macro_export]
 macro_rules! rep {
-    ($a:expr) => { Repeat(false, Box::new($a)) };
+    ($a:expr) => {
+        Repeat(false, Box::new($a))
+    };
 }
 
 macro_rules! optrep {
-    ($a:expr) => { Repeat(true, Box::new($a)) };
+    ($a:expr) => {
+        Repeat(true, Box::new($a))
+    };
 }
 
 impl<A> Parse<Vec<A>> for Repeat<A> {

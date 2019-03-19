@@ -14,7 +14,7 @@ type Response<A> = response::Response<A, usize>;
 
 //  ------------------------------------------------------------------------------------------------
 
-pub trait Parser<'a, A> {
+pub trait Parse<'a, A> {
     fn parse(&self, s: &'a [u8], o: usize) -> Response<A>;
 }
 
@@ -23,12 +23,18 @@ pub trait Parser<'a, A> {
 // The Satisfy parser
 //
 
-struct Satisfy<E>(E) where E: Fn(char) -> bool;
+pub struct Satisfy<E>(pub E)
+where
+    E: Fn(char) -> bool;
 
-impl<'a, E> Parser<'a, char> for Satisfy<E> where E: Fn(char) -> bool {
+impl<'a, E> Parse<'a, char> for Satisfy<E>
+where
+    E: Fn(char) -> bool,
+{
     fn parse(&self, s: &'a [u8], o: usize) -> Response<char> {
         if o < s.len() {
             let Satisfy(f) = self;
+
             let c = s[o] as char; // Simplified approach
 
             if f(c) {
@@ -40,15 +46,15 @@ impl<'a, E> Parser<'a, char> for Satisfy<E> where E: Fn(char) -> bool {
     }
 }
 
-fn any<'a>() -> impl Parser<'a, char> {
+fn any<'a>() -> Satisfy<impl Fn(char) -> bool> {
     Satisfy(|_| true)
 }
 
-fn char<'a>(c: char) -> impl Parser<'a, char> {
+fn char<'a>(c: char) -> Satisfy<impl Fn(char) -> bool> {
     Satisfy(move |v| v == c)
 }
 
-fn not<'a>(c: char) -> impl Parser<'a, char> {
+fn not<'a>(c: char) -> Satisfy<impl Fn(char) -> bool> {
     Satisfy(move |v| v != c)
 }
 
@@ -57,7 +63,7 @@ mod tests_satisfy {
     use crate::any;
     use crate::char;
     use crate::not;
-    use crate::Parser;
+    use crate::Parse;
 
     #[test]
     fn it_parse_any_character() {
@@ -107,29 +113,37 @@ mod tests_satisfy {
 // The And parser
 //
 
-pub struct And<'a, L, R, A, B> (L, R, PhantomData<A>, PhantomData<B>, PhantomData<&'a [u8]>)
-    where L: Parser<'a, A>,
-          R: Parser<'a, B>;
+pub struct And<'a, L, R, A, B>(
+    pub L,
+    pub R,
+    pub PhantomData<A>,
+    pub PhantomData<B>,
+    pub PhantomData<&'a [u8]>,
+)
+where
+    L: Parse<'a, A>,
+    R: Parse<'a, B>;
 
 macro_rules! and {
-( $ a: expr, $ b: expr) => { And( $ a, $ b, PhantomData, PhantomData, PhantomData) };
+    ( $ a: expr, $ b: expr) => {
+        And($a, $b, PhantomData, PhantomData, PhantomData)
+    };
 }
 
-impl<'a, L, R, A, B> Parser<'a, (A, B)> for And<'a, L, R, A, B>
-    where L: Parser<'a, A>,
-          R: Parser<'a, B>
+impl<'a, L, R, A, B> Parse<'a, (A, B)> for And<'a, L, R, A, B>
+where
+    L: Parse<'a, A>,
+    R: Parse<'a, B>,
 {
     fn parse(&self, s: &'a [u8], o: usize) -> Response<(A, B)> {
         let And(left, right, _, _, _) = self;
 
         match left.parse(s, o) {
-            Success(v1, s1) => {
-                match right.parse(s, s1) {
-                    Success(v2, s2) => Success((v1, v2), s2),
-                    Reject => Reject
-                }
-            }
-            Reject => Reject
+            Success(v1, s1) => match right.parse(s, s1) {
+                Success(v2, s2) => Success((v1, v2), s2),
+                Reject => Reject,
+            },
+            Reject => Reject,
         }
     }
 }
@@ -138,9 +152,9 @@ impl<'a, L, R, A, B> Parser<'a, (A, B)> for And<'a, L, R, A, B>
 mod tests_and {
     use std::marker::PhantomData;
 
-    use crate::And;
     use crate::char;
-    use crate::Parser;
+    use crate::And;
+    use crate::Parse;
 
     #[test]
     fn it_parse_two_characters() {
@@ -162,20 +176,31 @@ mod tests_and {
 // The Repeatable parser
 //
 
-pub struct Repeat<'a, P, A> (pub bool, pub P, pub PhantomData<A>, pub PhantomData<&'a [u8]>)
-    where P: Parser<'a, A>;
+pub struct Repeat<'a, P, A>(
+    pub bool,
+    pub P,
+    pub PhantomData<A>,
+    pub PhantomData<&'a [u8]>,
+)
+where
+    P: Parse<'a, A>;
 
 #[macro_export]
 macro_rules! rep {
-($a: expr) => { Repeat(false, $ a, PhantomData, PhantomData) };
+    ($a: expr) => {
+        Repeat(false, $a, PhantomData, PhantomData)
+    };
 }
 
 macro_rules! optrep {
-($a: expr) => { Repeat(true, $ a, PhantomData, PhantomData) };
+    ($a: expr) => {
+        Repeat(true, $a, PhantomData, PhantomData)
+    };
 }
 
-impl<'a, P, A> Parser<'a, Vec<A>> for Repeat<'a, P, A>
-    where P: Parser<'a, A>
+impl<'a, P, A> Parse<'a, Vec<A>> for Repeat<'a, P, A>
+where
+    P: Parse<'a, A>,
 {
     fn parse(&self, s: &'a [u8], o: usize) -> Response<Vec<A>> {
         let Repeat(opt, p, _, _) = self;
@@ -208,7 +233,7 @@ mod tests_repeat {
     use std::marker::PhantomData;
 
     use crate::char;
-    use crate::Parser;
+    use crate::Parse;
     use crate::Repeat;
 
     #[test]
@@ -240,14 +265,14 @@ mod tests_repeat {
 
 pub struct Delimited;
 
-impl<'a> Parser<'a, (&'a [u8], usize, usize)> for Delimited {
+impl<'a> Parse<'a, (&'a [u8], usize, usize)> for Delimited {
     fn parse(&self, s: &'a [u8], o: usize) -> Response<(&'a [u8], usize, usize)> {
         let sep = '"';
         let response = and!(char(sep), and!(optrep!(not(sep)), char(sep))).parse(s, o);
 
         match response {
             Success(_, e) => Success((s, o + 1, e - 1), e),
-            Reject => Reject
+            Reject => Reject,
         }
     }
 }
@@ -259,7 +284,7 @@ pub fn delimited_string<'a>() -> Delimited {
 #[cfg(test)]
 mod tests_delimited_string {
     use crate::delimited_string;
-    use crate::Parser;
+    use crate::Parse;
 
     #[test]
     fn it_parse_a_three_characters_string() {

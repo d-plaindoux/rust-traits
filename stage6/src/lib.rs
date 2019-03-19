@@ -30,14 +30,23 @@ pub trait Check {
 // The Satisfy parser
 //
 
-impl<E> Combine<char> for E where E: Fn(char) -> bool {}
+pub struct Satisfy<E>(pub E)
+where
+    E: Fn(char) -> bool;
 
-impl<'a, E> Parse<'a, char> for E where E: Fn(char) -> bool {
+impl<E> Combine<char> for Satisfy<E> where E: Fn(char) -> bool {}
+
+impl<'a, E> Parse<'a, char> for Satisfy<E>
+where
+    E: Fn(char) -> bool,
+{
     fn parse(&self, s: &'a [u8], o: usize) -> Response<char> {
         if o < s.len() {
+            let Self(f) = self;
+
             let c = s[o] as char; // Simplified approach
 
-            if self(c) {
+            if f(c) {
                 return Success(c, o + 1);
             }
         }
@@ -46,34 +55,36 @@ impl<'a, E> Parse<'a, char> for E where E: Fn(char) -> bool {
     }
 }
 
-impl<E> Check for E where E: Fn(char) -> bool {
+impl<E> Check for Satisfy<E>
+where
+    E: Fn(char) -> bool,
+{
     fn check(&self, s: &[u8], o: usize) -> Response<()> {
         match self.parse(s, o) {
-            Success(_,s) => Success((), s),
-            Reject => Reject
+            Success(_, s) => Success((), s),
+            Reject => Reject,
         }
     }
 }
 
-
-fn any() -> impl Fn(char) -> bool {
-    |_| true
+fn any<'a>() -> Satisfy<impl Fn(char) -> bool> {
+    Satisfy(|_| true)
 }
 
-fn char(c: char) -> impl Fn(char) -> bool {
-    move |v| v == c
+fn char<'a>(c: char) -> Satisfy<impl Fn(char) -> bool> {
+    Satisfy(move |v| v == c)
 }
 
-fn not(c: char) -> impl Fn(char) -> bool {
-    move |v| v != c
+fn not<'a>(c: char) -> Satisfy<impl Fn(char) -> bool> {
+    Satisfy(move |v| v != c)
 }
 
 #[cfg(test)]
 mod tests_satisfy {
     use crate::any;
     use crate::char;
-    use crate::Parse;
     use crate::not;
+    use crate::Parse;
 
     #[test]
     fn it_parse_any_character() {
@@ -123,53 +134,56 @@ mod tests_satisfy {
 // The And parser
 //
 
-struct And<L, R, A, B> (L, R, PhantomData<A>, PhantomData<B>)
-    where L: Combine<A>,
-          R: Combine<B>;
+pub struct And<L, R, A, B>(pub L, pub R, pub PhantomData<A>, pub PhantomData<B>)
+where
+    L: Combine<A>,
+    R: Combine<B>;
 
 macro_rules! and {
-( $ a: expr, $ b: expr) => { And( $ a, $ b, PhantomData, PhantomData) };
+    ( $ a: expr, $ b: expr) => {
+        And($a, $b, PhantomData, PhantomData)
+    };
 }
 
 impl<L, R, A, B> Combine<(A, B)> for And<L, R, A, B>
-    where L: Combine<A>,
-          R: Combine<B>
-{}
+where
+    L: Combine<A>,
+    R: Combine<B>,
+{
+}
 
 impl<'a, L, R, A, B> Parse<'a, (A, B)> for And<L, R, A, B>
-    where L: Parse<'a, A> + Combine<A>,
-          R: Parse<'a, B> + Combine<B>
+where
+    L: Parse<'a, A> + Combine<A>,
+    R: Parse<'a, B> + Combine<B>,
 {
     fn parse(&self, s: &'a [u8], o: usize) -> Response<(A, B)> {
         let And(left, right, _, _) = self;
 
         match left.parse(s, o) {
-            Success(v1, s1) => {
-                match right.parse(s, s1) {
-                    Success(v2, s2) => Success((v1, v2), s2),
-                    Reject => Reject
-                }
-            }
-            Reject => Reject
+            Success(v1, s1) => match right.parse(s, s1) {
+                Success(v2, s2) => Success((v1, v2), s2),
+                Reject => Reject,
+            },
+            Reject => Reject,
         }
     }
 }
 
 impl<L, R, A, B> Check for And<L, R, A, B>
-    where L: Check + Combine<A>,
-          R: Check + Combine<B>
+where
+    L: Check + Combine<A>,
+    R: Check + Combine<B>,
 {
     fn check(&self, s: &[u8], o: usize) -> Response<()> {
         let And(left, right, _, _) = self;
 
         match left.check(s, o) {
-            Success(_, s1) => {
-                match right.check(s, s1) {
-                    Success(_, s2) => Success((), s2),
-                    Reject => Reject
-                }
-            }
-            Reject => Reject
+            Success(_, s1) => match right.check(s, s1) {
+                Success(_, s2) => Success((), s2),
+                Reject => Reject,
+            },
+            Reject => Reject,
         }
     }
 }
@@ -178,8 +192,8 @@ impl<L, R, A, B> Check for And<L, R, A, B>
 mod tests_and {
     use std::marker::PhantomData;
 
-    use crate::And;
     use crate::char;
+    use crate::And;
     use crate::Parse;
 
     #[test]
@@ -202,24 +216,28 @@ mod tests_and {
 // The Repeatable parser
 //
 
-pub struct Repeat<P, A> (pub bool, pub P, pub PhantomData<A>)
-    where P: Combine<A>;
+pub struct Repeat<P, A>(pub bool, pub P, pub PhantomData<A>)
+where
+    P: Combine<A>;
 
 #[macro_export]
 macro_rules! rep {
-( $ a: expr) => { Repeat(false, $ a, PhantomData) };
+    ( $ a: expr) => {
+        Repeat(false, $a, PhantomData)
+    };
 }
 
 macro_rules! optrep {
-( $ a: expr) => { Repeat(true, $ a, PhantomData) };
+    ( $ a: expr) => {
+        Repeat(true, $a, PhantomData)
+    };
 }
 
-impl<P, A> Combine<Vec<A>> for Repeat<P, A>
-    where P: Combine<A>
-{}
+impl<P, A> Combine<Vec<A>> for Repeat<P, A> where P: Combine<A> {}
 
 impl<'a, P, A> Parse<'a, Vec<A>> for Repeat<P, A>
-    where P: Parse<'a, A> + Combine<A>
+where
+    P: Parse<'a, A> + Combine<A>,
 {
     fn parse(&self, s: &'a [u8], o: usize) -> Response<Vec<A>> {
         let Repeat(opt, p, _) = self;
@@ -248,7 +266,8 @@ impl<'a, P, A> Parse<'a, Vec<A>> for Repeat<P, A>
 }
 
 impl<P, A> Check for Repeat<P, A>
-    where P: Check + Combine<A>
+where
+    P: Check + Combine<A>,
 {
     fn check(&self, s: &[u8], o: usize) -> Response<()> {
         let Repeat(opt, p, _) = self;
@@ -320,7 +339,7 @@ impl<'a> Parse<'a, (&'a [u8], usize, usize)> for Delimited {
 
         match response {
             Success(_, no) => Success((s, o + 1, no - 1), no),
-            Reject => Reject
+            Reject => Reject,
         }
     }
 }
