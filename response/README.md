@@ -2,8 +2,8 @@
 
 ```Rust
 pub enum Response<A, S> {
-    Success(A, S, bool),
-    Reject(bool)
+    Success(A, S),
+    Reject
 }
 ```
 
@@ -14,9 +14,6 @@ Une réponse est un type générique pour lequel:
 On distingue alors deux cas: 
 - un succès et 
 - un échec.
-
-Dans les deux cas un booléen complète la données 
-indiquant si un caractère ou non a été consommé.
 
 ## Alternative 
 
