@@ -17,7 +17,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 
     <link rel="stylesheet" href="css/reveal.css">
-    <link rel="stylesheet" href="css/theme/serif.css" id="theme">
+    <link rel="stylesheet" href="css/theme/league.css" id="theme">
 
     <!-- Code syntax highlighting -->
     <link rel="stylesheet" href="lib/css/zenburn.css">
@@ -61,8 +61,8 @@
 
         <section>
             <h3> Programmation par Traits <br><span class="fragment">sous l'influence de la gestion mémoire</span> </h3>
-            <br> BreizhCamp 2019 </br>
-            <p><img style="vertical-align: middle;" class="plain img-circle" width="6%" src="images/photo.jpg">
+            <br> Remote λilleFP 2020 </br>
+            <p><img style="vertical-align: middle;" class="plain img-circle" width="5%" src="images/photo.png">
                 &nbsp; <a style="font-size:30px" href="http://twitter.com/dplaindoux">@dplaindoux</a></p>
         </section>
 
@@ -294,16 +294,23 @@
             <h3> Passage à la pratique </h3>
 
             <code class="fragment" style="font-size:80%" data-trim data-noescape class="Rust">
-                Parser A = String &rarr; (Success&lt;A>|Reject)
+                Parser&ltA> &#x225D; String &rarr; (Success&lt;A>|Reject)
             </code>
+
+            <pre class="fragment"><code style="font-size:80%" data-noescape class="Rust">
+                Satisfy(predicate: char -> bool) -> Parser&lt;char>
+
+              <span class="fragment">And(left:Parser&lt;A>, right:Parse&lt;B>) -> Parser&lt;(A,B)></span>
+
+            <span class="fragment">Repeat(optional:bool, parser:Parser&lt;A>) -> Parser&lt;Vec&lt;A>></span>
+            </code></pre>
 
         </section>
 
-        <!-- ####################### -->
-
         <section>
-            <h3> Version réduite </h3>
+            <h3> Exemple simpl(ist)e</h3>
 
+<<<<<<< HEAD
             <pre><code class="fragment" style="font-size:80%" class="Rust">
                 Satisfy(predicate: char -> bool) -> Parser&lt;char>
             </code></pre>
@@ -314,6 +321,16 @@
 
             <pre><code class="fragment" style="font-size:80%" class="Rust">
            Repeat(optional:bool, parser:Parser&lt;A>) -> Parser&lt;Vec&lt;A>>
+=======
+            <pre><code style="font-size:80%">
+                 And(
+                    Satisfy(c -> c == '"'),
+                    And(
+                       Repeat(true, Satisfy(c -> c != '"')),
+                       Satisfy(c -> c == '"')
+                    )
+                 )
+>>>>>>> 3125cf0 (Last modification for LilleFP + typos)
             </code></pre>
 
         </section>
@@ -516,17 +533,20 @@
         <section>
             <h3> Conclusion </h3>
 
-            <p> Test Driven Design </p>
-            <p> Domain Driven Design </p>
+            <p> Test Driven Development </p>
+            <p> Domain Driven Development </p>
             <p> ... </p>
-            <p class="fragment"> Memory Driven Design ? </p>
-            <p class="fragment"> Type Driven Design ! </p>
+            <p class="fragment"> Memory Driven Development ? </p>
+            <p class="fragment"> Type Driven Development ! </p>
         </section>
 
         <!-- ####################### -->
 
         <section>
-            <h3> Merci </h3>
+            <h3> Programmation par Traits <br>sous l'influence de la gestion mémoire </h3>
+            <p><img style="vertical-align: middle;" class="plain img-circle" width="5%" src="images/photo.png">
+                &nbsp; <a style="font-size:30px" href="http://twitter.com/dplaindoux">@dplaindoux</a></p>
+            <h6 style="text-transform: lowercase"><a href="https://github.com/d-plaindoux/rust-traits"> https://github.com/d-plaindoux/rust-traits </a></h6>
         </section>
 
         <!-- ####################### -->

@@ -21,12 +21,12 @@ pub trait Parse<A> {
 // The Satisfy parser
 //
 
-pub struct Satisfy(pub Box<Fn(char) -> bool>); // Unknown size: Fn(...) -> ... =>
+pub struct Satisfy(pub Box<dyn Fn(char) -> bool>); // Unknown size: Fn(...) -> ... => Closure
 
 impl Parse<char> for Satisfy {
     fn parse(&self, s: String) -> Response<char> {
         if !s.is_empty() {
-            let Satisfy(f) = self;
+            let Self(f) = self;
 
             let c = s.chars().next().unwrap();
 
@@ -119,7 +119,8 @@ impl<A, B> Parse<(A, B)> for And<A, B> {
         let And(left, right) = self;
 
         match left.parse(s) {
-            Success(v1, s1) => match right.parse(s1) {
+            Success(v1, s1) =>
+                match right.parse(s1) {
                 Success(v2, s2) => Success((v1, v2), s2),
                 Reject => Reject,
             },
@@ -154,7 +155,7 @@ mod tests_and {
 // The Repeatable parser
 //
 
-pub struct Repeat<A>(pub bool, pub Box<Parse<A>>);
+pub struct Repeat<A>(pub bool, pub Box<dyn Parse<A>>);
 
 #[macro_export]
 macro_rules! rep {

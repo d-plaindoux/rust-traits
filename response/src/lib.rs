@@ -9,11 +9,9 @@ impl<A, S> Response<A, S> {
         FS: Fn(A, S) -> B,
         FR: Fn() -> B,
     {
-        use crate::Response::{Reject, Success};
-
         match self {
-            Success(a, s) => success(a, s),
-            Reject => reject(),
+            Response::Success(a, s) => success(a, s),
+            Response::Reject => reject(),
         }
     }
 }
