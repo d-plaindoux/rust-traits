@@ -310,7 +310,6 @@
         <section>
             <h3> Exemple simpl(ist)e</h3>
 
-<<<<<<< HEAD
             <pre><code class="fragment" style="font-size:80%" class="Rust">
                 Satisfy(predicate: char -> bool) -> Parser&lt;char>
             </code></pre>
@@ -321,16 +320,6 @@
 
             <pre><code class="fragment" style="font-size:80%" class="Rust">
            Repeat(optional:bool, parser:Parser&lt;A>) -> Parser&lt;Vec&lt;A>>
-=======
-            <pre><code style="font-size:80%">
-                 And(
-                    Satisfy(c -> c == '"'),
-                    And(
-                       Repeat(true, Satisfy(c -> c != '"')),
-                       Satisfy(c -> c == '"')
-                    )
-                 )
->>>>>>> 3125cf0 (Last modification for LilleFP + typos)
             </code></pre>
 
         </section>
