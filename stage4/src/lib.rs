@@ -46,15 +46,15 @@ where
     }
 }
 
-fn any<'a>() -> Satisfy<impl Fn(char) -> bool> {
+fn any() -> Satisfy<impl Fn(char) -> bool> {
     Satisfy(|_| true)
 }
 
-fn char<'a>(c: char) -> Satisfy<impl Fn(char) -> bool> {
+fn char(c: char) -> Satisfy<impl Fn(char) -> bool> {
     Satisfy(move |v| v == c)
 }
 
-fn not<'a>(c: char) -> Satisfy<impl Fn(char) -> bool> {
+fn not(c: char) -> Satisfy<impl Fn(char) -> bool> {
     Satisfy(move |v| v != c)
 }
 
@@ -277,7 +277,7 @@ impl<'a> Parse<'a, (&'a [u8], usize, usize)> for Delimited {
     }
 }
 
-pub fn delimited_string<'a>() -> Delimited {
+pub fn delimited_string() -> Delimited {
     Delimited
 }
 

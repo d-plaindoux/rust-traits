@@ -51,15 +51,15 @@ where
     }
 }
 
-fn any<'a>() -> Satisfy<impl Fn(char) -> bool> {
+fn any() -> Satisfy<impl Fn(char) -> bool> {
     Satisfy(|_| true)
 }
 
-fn char<'a>(c: char) -> Satisfy<impl Fn(char) -> bool> {
+fn char(c: char) -> Satisfy<impl Fn(char) -> bool> {
     Satisfy(move |v| v == c)
 }
 
-fn not<'a>(c: char) -> Satisfy<impl Fn(char) -> bool> {
+fn not(c: char) -> Satisfy<impl Fn(char) -> bool> {
     Satisfy(move |v| v != c)
 }
 
@@ -268,7 +268,7 @@ mod tests_repeat {
 
 pub struct Delimited;
 
-impl<'a> Combine<(&'a [u8], usize, usize)> for Delimited {}
+impl Combine<(&[u8], usize, usize)> for Delimited {}
 
 impl<'a> Parse<'a, (&'a [u8], usize, usize)> for Delimited {
     fn parse(&self, s: &'a [u8], o: usize) -> Response<(&'a [u8], usize, usize)> {
